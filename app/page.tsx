@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 
-// 🔥 FINAL PRO DETECTION FUNCTION
+// 🔥 ULTRA PRO DETECTION FUNCTION
 function analyzeThreat(message: string) {
   const text = message.toLowerCase();
 
@@ -11,29 +11,30 @@ function analyzeThreat(message: string) {
   const hasLink = /(https?:\/\/|www\.)/.test(text);
   const hasOTP = /\b\d{4,6}\b/.test(text);
 
+  // 🚨 BASIC SIGNALS
   if (hasLink) score += 40;
+  if (hasOTP) score += 10;
 
-  if (text.includes("bank")) score += 25;
-  if (text.includes("click here")) score += 25;
-  if (text.includes("urgent")) score += 20;
-  if (text.includes("blocked")) score += 20;
-  if (text.includes("lottery") || text.includes("won")) score += 30;
-  if (text.includes("claim")) score += 20;
-  if (text.includes("upi") || text.includes("send money")) score += 30;
+  // 🚨 KEYWORDS
+  const keywords = [
+    "bank", "account", "blocked", "suspended",
+    "click here", "urgent", "verify", "confirm",
+    "password", "login", "otp", "security",
+    "lottery", "won", "prize", "claim",
+    "upi", "send money", "payment", "transfer",
+    "free", "offer", "limited time"
+  ];
 
-  if (hasOTP) {
-    if (hasLink) score += 40;
-    else if (
-      text.includes("share") ||
-      text.includes("verify") ||
-      text.includes("confirm")
-    ) {
-      score += 25;
-    } else {
-      score += 10;
-    }
-  }
+  keywords.forEach((word) => {
+    if (text.includes(word)) score += 15;
+  });
 
+  // 🚨 COMBO LOGIC (SMART AI FEEL)
+  if (hasOTP && hasLink) score += 40;
+  if (text.includes("verify") && hasLink) score += 25;
+  if (text.includes("bank") && text.includes("urgent")) score += 25;
+
+  // LIMIT
   if (score > 100) score = 100;
 
   if (score >= 70) {
@@ -66,7 +67,7 @@ export default function Home() {
       const res = analyzeThreat(message);
       setResult(res);
       setLoading(false);
-    }, 600);
+    }, 700);
   };
 
   const getBarColor = (score: number) => {
@@ -78,7 +79,7 @@ export default function Home() {
   return (
     <main className="relative flex items-center justify-center min-h-screen px-4 bg-gradient-to-br from-black via-slate-900 to-black text-white overflow-hidden">
 
-      {/* 🔥 Background Glow */}
+      {/* 🔥 Animated Background */}
       <div className="absolute w-[500px] h-[500px] bg-purple-600/20 blur-[120px] rounded-full top-10 left-10 animate-pulse" />
       <div className="absolute w-[400px] h-[400px] bg-blue-600/20 blur-[120px] rounded-full bottom-10 right-10 animate-pulse" />
 
@@ -101,7 +102,7 @@ export default function Home() {
           className="w-full p-3 rounded-xl bg-black/40 border border-blue-400 focus:ring-2 focus:ring-blue-500 transition outline-none"
         />
 
-        {/* SUGGESTIONS */}
+        {/* QUICK EXAMPLES */}
         <div className="flex gap-2 mt-3 flex-wrap">
           {[
             "Your bank account is blocked, click here",
@@ -119,7 +120,7 @@ export default function Home() {
           ))}
         </div>
 
-        {/* AI TEXT */}
+        {/* AI THINKING */}
         {message.length > 5 && !loading && (
           <p className="text-xs text-gray-400 mt-2 animate-pulse">
             🤖 AI analyzing message...
@@ -133,7 +134,7 @@ export default function Home() {
           onClick={handleCheck}
           className="mt-5 w-full py-3 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 transition shadow-lg"
         >
-          {loading ? "Analyzing..." : "Analyze Message"}
+          {loading ? "🤖 AI Thinking..." : "Analyze Message"}
         </motion.button>
 
         {/* CLEAR */}
@@ -174,10 +175,10 @@ export default function Home() {
             {/* SMART MESSAGE */}
             <p className="text-xs mt-3 text-center text-gray-400 italic">
               {result.score >= 70
-                ? "🚨 This is likely a scam. Avoid clicking links or sharing data."
+                ? "🚨 High risk scam detected. Do not click or share any info."
                 : result.score >= 40
-                ? "⚠️ This message looks suspicious. Stay cautious."
-                : "✅ This looks safe, but always stay alert."}
+                ? "⚠️ Suspicious message. Verify before trusting."
+                : "✅ Looks safe, but stay cautious always."}
             </p>
 
             {/* COPY */}
@@ -192,7 +193,6 @@ export default function Home() {
               {copied ? "✅ Copied!" : "📋 Copy Message"}
             </button>
 
-            {/* 🔥 FINAL ADDED LINE */}
             <p className="text-[10px] text-gray-500 text-center mt-2">
               Powered by AI heuristic analysis • Not 100% accurate
             </p>
