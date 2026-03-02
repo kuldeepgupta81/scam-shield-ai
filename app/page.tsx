@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 
-// 🔥 PRO DETECTION WITH REASONS
+// 🔥 ADVANCED DETECTION FUNCTION + REASONS
 function analyzeThreat(message: string) {
   const text = message.toLowerCase();
 
@@ -14,58 +14,46 @@ function analyzeThreat(message: string) {
 
   if (hasLink) {
     score += 40;
-    reasons.push("🔗 Contains suspicious link");
+    reasons.push("Contains suspicious link");
   }
 
   if (text.includes("bank")) {
     score += 25;
-    reasons.push("🏦 Mentions bank (financial risk)");
+    reasons.push("Mentions bank");
   }
 
   if (text.includes("click here")) {
     score += 25;
-    reasons.push("👉 Uses 'click here' (phishing tactic)");
+    reasons.push("Urgent call-to-action (click here)");
   }
 
   if (text.includes("urgent")) {
     score += 20;
-    reasons.push("⚡ Creates urgency");
+    reasons.push("Creates urgency");
   }
 
   if (text.includes("blocked")) {
     score += 20;
-    reasons.push("🚫 Threat language (account blocked)");
+    reasons.push("Threat language (account blocked)");
   }
 
   if (text.includes("lottery") || text.includes("won")) {
     score += 30;
-    reasons.push("🎁 Fake reward / lottery");
-  }
-
-  if (text.includes("claim")) {
-    score += 20;
-    reasons.push("📢 Asks to claim reward");
+    reasons.push("Lottery / reward scam pattern");
   }
 
   if (text.includes("upi") || text.includes("send money")) {
     score += 30;
-    reasons.push("💰 Payment request detected");
+    reasons.push("Money request detected");
   }
 
   if (hasOTP) {
     if (hasLink) {
       score += 40;
-      reasons.push("🔐 OTP + link combo (very dangerous)");
-    } else if (
-      text.includes("share") ||
-      text.includes("verify") ||
-      text.includes("confirm")
-    ) {
-      score += 25;
-      reasons.push("🔐 OTP misuse attempt");
+      reasons.push("OTP + link combo (very dangerous)");
     } else {
       score += 10;
-      reasons.push("🔢 OTP detected");
+      reasons.push("Contains OTP");
     }
   }
 
@@ -89,6 +77,8 @@ export default function Home() {
   const [message, setMessage] = useState("");
   const [result, setResult] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [history, setHistory] = useState<any[]>([]);
 
   useEffect(() => {
     if (message.length > 5) {
@@ -101,11 +91,19 @@ export default function Home() {
 
   const handleCheck = () => {
     setLoading(true);
+
     setTimeout(() => {
       const res = analyzeThreat(message);
       setResult(res);
+
+      // 🔥 HISTORY SAVE
+      setHistory((prev) => [
+        { message, result: res },
+        ...prev.slice(0, 4),
+      ]);
+
       setLoading(false);
-    }, 500);
+    }, 600);
   };
 
   const getBarColor = (score: number) => {
@@ -114,13 +112,23 @@ export default function Home() {
     return "from-green-400 to-green-600";
   };
 
+  const getBadge = (score: number) => {
+    if (score >= 70) return "🔴 Dangerous";
+    if (score >= 40) return "🟡 Risky";
+    return "🟢 Trusted";
+  };
+
   return (
-    <main className="flex items-center justify-center min-h-screen bg-black text-white px-4">
+    <main className="relative flex items-center justify-center min-h-screen px-4 bg-gradient-to-br from-black via-slate-900 to-black text-white overflow-hidden">
+
+      {/* 🔥 BACKGROUND */}
+      <div className="absolute w-[500px] h-[500px] bg-purple-600/20 blur-[120px] rounded-full top-10 left-10 animate-pulse" />
+      <div className="absolute w-[400px] h-[400px] bg-blue-600/20 blur-[120px] rounded-full bottom-10 right-10 animate-pulse" />
 
       <motion.div
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white/10 backdrop-blur-xl border border-white/20 p-8 rounded-3xl shadow-2xl w-full max-w-xl"
+        className="relative bg-white/10 backdrop-blur-xl border border-white/20 p-8 rounded-3xl shadow-2xl w-full max-w-xl"
       >
         <h1 className="text-3xl font-bold text-center mb-6">
           🚨 Scam Detector AI
@@ -132,56 +140,114 @@ export default function Home() {
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           placeholder="Paste suspicious message here..."
-          className="w-full p-3 rounded-xl bg-black/40 border border-blue-400 outline-none"
+          className="w-full p-3 rounded-xl bg-black/40 border border-blue-400 focus:ring-2 focus:ring-blue-500 outline-none"
         />
 
+        {/* SUGGESTIONS */}
+        <div className="flex gap-2 mt-3 flex-wrap">
+          {[
+            "Your bank account is blocked, click here",
+            "You won lottery claim now",
+            "Your OTP is 123456",
+            "Verify your account urgently",
+          ].map((msg, i) => (
+            <button
+              key={i}
+              onClick={() => setMessage(msg)}
+              className="text-xs px-3 py-1 bg-white/10 rounded-full"
+            >
+              {msg}
+            </button>
+          ))}
+        </div>
+
         {/* BUTTON */}
-        <motion.button
-          whileTap={{ scale: 0.95 }}
+        <button
           onClick={handleCheck}
           className="mt-5 w-full py-3 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600"
         >
           {loading ? "Analyzing..." : "Analyze Message"}
-        </motion.button>
+        </button>
 
         {/* RESULT */}
         {result && (
-          <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="mt-6 p-5 rounded-xl bg-white/5 border border-white/10"
-          >
+          <div className="mt-6 p-5 rounded-xl bg-white/5">
             <p className={`text-2xl font-bold text-center ${result.color}`}>
               {result.label}
             </p>
 
-            {/* SCORE BAR */}
+            {/* BADGE */}
+            <p className="text-center text-sm mt-1">
+              {getBadge(result.score)}
+            </p>
+
+            {/* BAR */}
             <div className="w-full bg-gray-700 h-3 rounded-full mt-4 overflow-hidden">
-              <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: `${result.score}%` }}
-                className={`h-3 bg-gradient-to-r ${getBarColor(result.score)}`}
+              <div
+                className={`h-3 bg-gradient-to-r ${getBarColor(
+                  result.score
+                )}`}
+                style={{ width: `${result.score}%` }}
               />
             </div>
 
-            <p className="text-sm mt-2 text-center text-gray-300">
-              Confidence: {result.score}%
+            <p className="text-sm mt-2 text-center">
+              Confidence Score: {result.score}%
             </p>
 
-            {/* 🔥 REASONS SECTION */}
+            {/* REASONS */}
             <div className="mt-4">
-              <p className="text-sm text-gray-400 mb-2 text-center">
-                🔍 Why this result?
+              <p className="text-sm text-gray-400 mb-1 text-center">
+                Why this result?
               </p>
-
-              <ul className="text-xs space-y-1 text-gray-300">
+              <ul className="text-xs text-gray-300 space-y-1 text-center">
                 {result.reasons.map((r: string, i: number) => (
                   <li key={i}>• {r}</li>
                 ))}
               </ul>
             </div>
 
-          </motion.div>
+            {/* COPY */}
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(message);
+                setCopied(true);
+                setTimeout(() => setCopied(false), 1500);
+              }}
+              className="mt-4 text-xs px-3 py-1 bg-white/10 rounded-lg block mx-auto"
+            >
+              {copied ? "✅ Copied!" : "📋 Copy"}
+            </button>
+
+            {/* SHARE */}
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(
+                  `Result: ${result.label} (${result.score}%)\nMessage: ${message}`
+                );
+                alert("Copied for sharing!");
+              }}
+              className="mt-2 text-xs px-3 py-1 bg-purple-600 rounded-lg block mx-auto"
+            >
+              🚀 Share Result
+            </button>
+          </div>
+        )}
+
+        {/* HISTORY */}
+        {history.length > 0 && (
+          <div className="mt-6">
+            <p className="text-sm text-gray-400 mb-2">🕘 Recent Checks</p>
+
+            <div className="space-y-2 text-xs">
+              {history.map((item, i) => (
+                <div key={i} className="bg-white/5 p-2 rounded-lg">
+                  <p className="truncate">{item.message}</p>
+                  <p className="text-gray-400">{item.result.label}</p>
+                </div>
+              ))}
+            </div>
+          </div>
         )}
       </motion.div>
     </main>
