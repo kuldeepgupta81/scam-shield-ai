@@ -136,6 +136,7 @@ export default function Home() {
           {loading ? "Analyzing..." : "Analyze Message"}
         </button>
 
+        {/* RESULT */}
         {result && (
           <div className="mt-6 p-5 rounded-xl bg-white/5">
 
@@ -172,36 +173,22 @@ export default function Home() {
               {copied ? "✅ Copied" : "📋 Copy"}
             </button>
 
-            {/* 🔥 SHARE RESULT (PRO) */}
-            <button
-              onClick={() => {
-                const shareText = `🚨 Scam Detector AI Result:
-"${message}"
-
-Result: ${result.label}
-Confidence: ${result.score}%
-
-Check here 👉 https://scam-shield-ai-rho.vercel.app`;
-
-                if (navigator.share) {
-                  navigator.share({
-                    title: "Scam Detector AI 🚨",
-                    text: shareText,
-                    url: "https://scam-shield-ai-rho.vercel.app",
-                  });
-                } else {
-                  navigator.clipboard.writeText(shareText);
-                  alert("Copied! Share anywhere 🔥");
-                }
-              }}
-              className="mt-3 w-full py-2 rounded-xl bg-gradient-to-r from-pink-500 to-purple-600"
-            >
-              🚀 Share Result
-            </button>
-
           </div>
         )}
 
+        {/* 🔥 ALWAYS SHARE BUTTON */}
+        <button
+          onClick={() => {
+            const shareText = `🚨 Check this app 🔥 https://scam-shield-ai-rho.vercel.app`;
+            navigator.clipboard.writeText(shareText);
+            alert("Copied! Share now 🔥");
+          }}
+          className="mt-4 w-full py-3 rounded-xl bg-gradient-to-r from-pink-500 to-purple-600"
+        >
+          🚀 Share App
+        </button>
+
+        {/* HISTORY */}
         {history.length > 0 && (
           <div className="mt-6">
             <p className="text-gray-400 text-sm mb-2">Recent Checks</p>
