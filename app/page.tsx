@@ -5,147 +5,200 @@ import { useState } from "react";
 export default function Home() {
   const [message, setMessage] = useState("");
   const [result, setResult] = useState<any>(null);
+  const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [freeScans, setFreeScans] = useState(3);
 
-  const handleCheck = async () => {
-    if (!message) return;
+  // 🔥 MESSAGE ANALYSIS (LOCAL FREE)
+  const analyzeText = () => {
+    let score = 0;
+    let reasons: string[] = [];
 
-    if (freeScans <= 0) {
-      alert("Free limit over! Unlock unlimited 🚀");
-      return;
+    const text = message.toLowerCase();
+
+    if (text.includes("otp") || /\d{4,6}/.test(text)) {
+      score += 50;
+      reasons.push("🔐 OTP related message");
     }
+
+    if (text.includes("bank")) {
+      score += 30;
+      reasons.push("🏦 Bank related");
+    }
+
+    if (text.includes("win") || text.includes("lottery")) {
+      score += 30;
+      reasons.push("🎁 Lottery scam");
+    }
+
+    let label = "✅ Safe";
+
+    if (score >= 70) label = "🚨 Scam";
+    else if (score >= 40) label = "⚠️ Suspicious";
+
+    setResult({
+      label,
+      score,
+      reasons,
+    });
+  };
+
+  // 🔥 IMAGE SCAN (FIXED)
+  const handleImageScan = async () => {
+    if (!file) return;
 
     setLoading(true);
 
-    try {
-      const res = await fetch("/api/analyze", {
+    const reader = new FileReader();
+
+    reader.onloadend = async () => {
+      const base64 = reader.result;
+
+      const res = await fetch("/api/scan-image", {
         method: "POST",
-        body: JSON.stringify({ message }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ image: base64 }),
       });
 
       const data = await res.json();
 
       setResult({
-        label: data.label || "Error",
-        score: data.confidence || 90,
-        reasons: data.reasons || ["🤖 AI analyzed result"],
+        label: data.result,
+        score: data.confidence,
+        reasons: data.reasons,
       });
 
-      setFreeScans(freeScans - 1);
-    } catch {
-      setResult({
-        label: "Error",
-        score: 90,
-        reasons: ["Server issue"],
-      });
-    }
+      setLoading(false);
+    };
 
-    setLoading(false);
+    reader.readAsDataURL(file);
   };
 
-  const shareText = `🚨 Scam Detector Result:
+  // 🔥 COPY RESULT (NO POPUP)
+  const copyResult = () => {
+    const text = `🚨 Scam Detector Result:
 
 "${message}"
 
 Result: ${result?.label}
 
-Check here 👉 https://scam-shield-ai-rho.vercel.app`;
+Check 👉 https://scam-shield-ai-rho.vercel.app`;
+
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  // 🔥 WHATSAPP SHARE
+  const shareWhatsApp = () => {
+    const text = `🚨 Scam Detector Result:
+
+"${message}"
+
+Result: ${result?.label}
+
+Check 👉 https://scam-shield-ai-rho.vercel.app`;
+
+    window.open(
+      `https://wa.me/?text=${encodeURIComponent(text)}`,
+      "_blank"
+    );
+  };
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-black to-blue-900 text-white p-4">
-      <div className="w-full max-w-md bg-white/10 backdrop-blur-lg rounded-2xl p-6 shadow-xl">
+    <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-900 to-indigo-900 text-white p-4">
+      <div className="bg-white/10 backdrop-blur-lg p-6 rounded-2xl w-full max-w-md shadow-lg">
 
-        {/* HEADER */}
-        <h1 className="text-2xl font-bold text-center mb-2">
+        <h1 className="text-xl font-bold text-center mb-2">
           🚨 Scam Detector AI
         </h1>
 
-        <p className="text-center text-yellow-400 text-sm mb-4">
+        <p className="text-center text-sm mb-4 text-yellow-300">
           ⭐ Trusted by 50,000+ users worldwide
         </p>
 
-        {/* INPUT */}
+        {/* TEXT INPUT */}
         <textarea
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           placeholder="Paste suspicious message..."
-          className="w-full p-3 rounded-lg bg-black border border-gray-600 mb-3"
+          className="w-full p-3 rounded bg-black text-white"
         />
 
         {/* ANALYZE */}
         <button
-          onClick={handleCheck}
-          className="w-full py-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg mb-3"
+          onClick={analyzeText}
+          className="w-full mt-3 py-2 rounded bg-gradient-to-r from-blue-500 to-purple-500"
         >
-          {loading ? "Analyzing..." : "Analyze Message"}
+          Analyze Message
         </button>
 
         {/* FILE INPUT */}
-        <input type="file" className="mb-2" />
+        <input
+          type="file"
+          onChange={(e) => setFile(e.target.files?.[0] || null)}
+          className="mt-3"
+        />
 
-        <button className="w-full py-2 bg-gradient-to-r from-purple-500 to-pink-600 rounded-lg mb-3">
-          Scan Image
+        {/* SCAN IMAGE */}
+        <button
+          onClick={handleImageScan}
+          className="w-full mt-2 py-2 rounded bg-gradient-to-r from-purple-500 to-pink-500"
+        >
+          {loading ? "Scanning..." : "Scan Image"}
         </button>
-
-        <p className="text-center text-red-400 text-sm mb-2">
-          Free scans left: {freeScans}
-        </p>
 
         {/* RESULT */}
         {result && (
-          <div className="bg-white/10 p-4 rounded-xl text-center">
+          <div className="mt-4 p-4 bg-white/10 rounded">
 
-            <h2 className="text-xl font-bold mb-1">{result.label}</h2>
+            <h2 className="text-lg font-semibold text-center">
+              {result.label}
+            </h2>
 
-            <p className="mb-2">Confidence: {result.score}%</p>
+            <p className="text-center text-sm">
+              Confidence: {result.score}%
+            </p>
 
-            {result.reasons.map((r: string, i: number) => (
-              <p key={i} className="text-sm text-gray-300">
-                • {r}
-              </p>
-            ))}
+            <ul className="text-sm mt-2">
+              {result.reasons?.map((r: string, i: number) => (
+                <li key={i}>• {r}</li>
+              ))}
+            </ul>
 
             {/* SHARE */}
             <button
-              onClick={() =>
-                window.open(
-                  `https://wa.me/?text=${encodeURIComponent(shareText)}`,
-                  "_blank"
-                )
-              }
-              className="mt-3 w-full py-2 bg-pink-600 rounded"
+              onClick={shareWhatsApp}
+              className="w-full mt-3 py-2 bg-pink-500 rounded"
             >
               🚀 Share on WhatsApp
             </button>
 
             {/* COPY */}
             <button
-              onClick={() => {
-                navigator.clipboard.writeText(shareText);
-                setCopied(true);
-                setTimeout(() => setCopied(false), 2000);
-              }}
-              className="mt-2 w-full py-2 bg-gray-700 rounded"
+              onClick={copyResult}
+              className="w-full mt-2 py-2 bg-gray-700 rounded"
             >
-              {copied ? "✅ Copied" : "📋 Copy Result"}
+              {copied ? "✅ Copied!" : "📋 Copy Result"}
             </button>
 
             {/* PREMIUM */}
             <button
-              onClick={() => alert("💳 Payment integration coming")}
-              className="mt-3 w-full py-2 bg-green-600 rounded-lg"
+              onClick={() => alert("💰 Payment coming soon")}
+              className="w-full mt-2 py-2 bg-green-600 rounded"
             >
               🔓 Unlock Unlimited (₹49)
             </button>
+
+            {/* VIRAL COUNTER */}
+            <p className="text-center text-sm mt-3 text-gray-300">
+              🔥 {Math.floor(Math.random() * 50000 + 10000)} users checked scams today
+            </p>
+
           </div>
         )}
-
-        {/* VIRAL COUNTER */}
-        <p className="text-center text-sm mt-3 text-gray-400">
-          🔥 {Math.floor(Math.random() * 50000 + 10000)} users checked scams today
-        </p>
       </div>
     </main>
   );
