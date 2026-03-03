@@ -2,15 +2,18 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 
+/* 🔥 MAIN DETECTION FUNCTION */
 function analyzeThreat(message: string) {
   const text = message.toLowerCase();
 
   let score = 0;
   let reasons: string[] = [];
 
-  if (text.includes("otp")) {
-    score += 40;
-    reasons.push("🔐 OTP scam risk");
+  const hasOTP = /\b\d{4,6}\b/.test(text);
+
+  if (text.includes("otp") || hasOTP) {
+    score += 50;
+    reasons.push("🔐 OTP related message");
   }
 
   if (text.includes("won") || text.includes("lottery")) {
@@ -101,7 +104,7 @@ export default function Home() {
               ))}
             </div>
 
-            {/* 🔥 WHATSAPP SHARE FINAL */}
+            {/* 🔥 WHATSAPP SHARE */}
             <button
               onClick={() => {
                 const text = `🚨 Scam Detector Result:
@@ -122,7 +125,7 @@ Check here 👉 https://scam-shield-ai-rho.vercel.app`;
               🚀 Share on WhatsApp
             </button>
 
-            {/* 🔥 VIRAL HOOK */}
+            {/* 🔥 VIRAL TEXT */}
             <p className="text-center text-sm mt-3 text-gray-400">
               🔥 10,000+ users checked scams today
             </p>
