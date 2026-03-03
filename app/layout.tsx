@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Script from "next/script";
+import "./globals.css"; // ✅ MOST IMPORTANT (TAILWIND FIX)
 
 export const metadata: Metadata = {
   title: "Scam Detector AI - Check Messages Instantly",
