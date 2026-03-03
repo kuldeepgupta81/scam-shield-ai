@@ -15,7 +15,7 @@ export async function POST(req: Request) {
         messages: [
           {
             role: "system",
-            content: "You are a scam detection AI. Analyze message and respond: Safe, Suspicious, or Scam with reason."
+            content: "You are a scam detection AI. Detect if message is Safe, Suspicious, or Scam. Give short reason.",
           },
           {
             role: "user",
@@ -26,15 +26,13 @@ export async function POST(req: Request) {
     });
 
     const data = await res.json();
+
     const output = data.choices[0].message.content;
 
     return NextResponse.json({
       result: output,
     });
-
   } catch (err) {
-    return NextResponse.json({
-      result: "Error analyzing message",
-    });
+    return NextResponse.json({ error: "AI failed" });
   }
 }
