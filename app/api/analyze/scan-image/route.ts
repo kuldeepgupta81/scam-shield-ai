@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
   try {
-    const { message } = await req.json();
+    const { image } = await req.json();
 
     const res = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -14,13 +14,19 @@ export async function POST(req: Request) {
         model: "gpt-4o-mini",
         messages: [
           {
-            role: "system",
-            content:
-              "You are a scam detection AI. Reply only: Safe, Suspicious, or Scam with short reason.",
-          },
-          {
             role: "user",
-            content: message,
+            content: [
+              {
+                type: "text",
+                text: "Check this image for scam. Reply Safe, Suspicious or Scam with reason.",
+              },
+              {
+                type: "image_url",
+                image_url: {
+                  url: image,
+                },
+              },
+            ],
           },
         ],
       }),
@@ -32,6 +38,6 @@ export async function POST(req: Request) {
       result: data.choices?.[0]?.message?.content || "Error",
     });
   } catch (err) {
-    return NextResponse.json({ result: "Server Error" });
+    return NextResponse.json({ result: "Image scan failed" });
   }
 }

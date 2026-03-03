@@ -8,37 +8,57 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  // 🔥 AI CHECK FUNCTION (CONNECTED)
+  // TEXT AI SCAN
   const handleCheck = async () => {
     if (!message) return;
-
     setLoading(true);
 
-    try {
-      const res = await fetch("/api/analyze", {
+    const res = await fetch("/api/analyze", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ message }),
+    });
+
+    const data = await res.json();
+
+    setResult({
+      label: data.result,
+      score: 90,
+      reasons: ["🤖 AI analyzed result"],
+    });
+
+    setLoading(false);
+  };
+
+  // IMAGE SCAN
+  const handleImage = async (file: File) => {
+    setLoading(true);
+
+    const reader = new FileReader();
+
+    reader.onloadend = async () => {
+      const res = await fetch("/api/scan-image", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ message }),
+        body: JSON.stringify({ image: reader.result }),
       });
 
       const data = await res.json();
 
       setResult({
-        label: data.result || "⚠️ Error",
-        score: 90,
-        reasons: ["🤖 AI analyzed result"],
+        label: data.result,
+        score: 95,
+        reasons: ["🖼️ Image analyzed by AI"],
       });
-    } catch (err) {
-      setResult({
-        label: "❌ Error",
-        score: 0,
-        reasons: ["Server issue"],
-      });
-    }
 
-    setLoading(false);
+      setLoading(false);
+    };
+
+    reader.readAsDataURL(file);
   };
 
   return (
@@ -53,6 +73,7 @@ export default function Home() {
           🚨 Scam Detector AI
         </h1>
 
+        {/* TEXT INPUT */}
         <textarea
           rows={4}
           value={message}
@@ -68,10 +89,25 @@ export default function Home() {
           {loading ? "Analyzing..." : "Analyze Message"}
         </button>
 
+        {/* IMAGE UPLOAD */}
+        <input
+          type="file"
+          accept="image/*"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) handleImage(file);
+          }}
+          className="mt-4 w-full"
+        />
+
+        <p className="text-sm text-gray-400 mt-2 text-center">
+          📷 Upload screenshot / WhatsApp / email image to scan
+        </p>
+
+        {/* RESULT */}
         {result && (
           <div className="mt-6 p-5 rounded-xl bg-white/5">
 
-            {/* RESULT */}
             <p className="text-2xl font-bold text-center text-yellow-400">
               {result.label}
             </p>
@@ -86,7 +122,7 @@ export default function Home() {
               ))}
             </div>
 
-            {/* 🚀 WHATSAPP SHARE */}
+            {/* WHATSAPP SHARE */}
             <button
               onClick={() => {
                 const text = `🚨 Scam Detector Result:
@@ -107,7 +143,7 @@ Check here 👉 https://scam-shield-ai-rho.vercel.app`;
               🚀 Share on WhatsApp
             </button>
 
-            {/* 📋 COPY RESULT (NO POPUP) */}
+            {/* COPY RESULT */}
             <button
               onClick={() => {
                 const text = `🚨 Scam Detector Result:
@@ -127,7 +163,7 @@ Check here 👉 https://scam-shield-ai-rho.vercel.app`;
               {copied ? "✅ Copied!" : "📋 Copy Result"}
             </button>
 
-            {/* 🔥 VIRAL COUNTER */}
+            {/* VIRAL COUNTER */}
             <p className="text-center text-sm mt-3 text-gray-400">
               🔥 {Math.floor(Math.random() * 50000 + 10000)} users checked scams today
             </p>
