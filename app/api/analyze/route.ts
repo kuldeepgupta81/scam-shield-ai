@@ -1,45 +1,40 @@
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
+  const { message } = await req.json();
+
   try {
-    const { message } = await req.json();
-
-    const text = message.toLowerCase();
-
-    let score = 0;
-    let reasons: string[] = [];
-
-    if (text.includes("won")) {
-      score += 30;
-      reasons.push("Lottery scam");
-    }
-
-    if (text.includes("click")) {
-      score += 25;
-      reasons.push("Click bait");
-    }
-
-    if (text.includes("otp")) {
-      score += 40;
-      reasons.push("OTP scam");
-    }
-
-    let label = "Safe";
-
-    if (score >= 60) label = "Scam";
-    else if (score >= 30) label = "Suspicious";
-
-    return NextResponse.json({
-      label,
-      confidence: score,
-      reasons,
+    const res = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        messages: [
+          {
+            role: "system",
+            content: "You are a scam detection AI. Analyze message and respond: Safe, Suspicious, or Scam with reason."
+          },
+          {
+            role: "user",
+            content: message,
+          },
+        ],
+      }),
     });
 
-  } catch (error) {
+    const data = await res.json();
+    const output = data.choices[0].message.content;
+
     return NextResponse.json({
-      label: "Error",
-      confidence: 0,
-      reasons: ["Server error"],
+      result: output,
+    });
+
+  } catch (err) {
+    return NextResponse.json({
+      result: "Error analyzing message",
     });
   }
 }
