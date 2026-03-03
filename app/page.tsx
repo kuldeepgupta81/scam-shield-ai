@@ -11,45 +11,20 @@ function analyzeThreat(message: string) {
   const hasLink = /(https?:\/\/|www\.)/.test(text);
   const hasOTP = /\b\d{4,6}\b/.test(text);
 
-  if (hasLink) {
-    score += 40;
-    reasons.push("🔗 Contains suspicious link");
-  }
-
-  if (text.includes("bank")) {
-    score += 25;
-    reasons.push("🏦 Mentions bank");
-  }
-
-  if (text.includes("click here")) {
-    score += 25;
-    reasons.push("⚠️ Click bait action");
-  }
-
-  if (text.includes("urgent")) {
-    score += 20;
-    reasons.push("⏳ Creates urgency");
-  }
-
-  if (text.includes("blocked")) {
-    score += 20;
-    reasons.push("🚫 Threat language used");
-  }
-
-  if (text.includes("lottery") || text.includes("won")) {
-    score += 30;
-    reasons.push("🎁 Lottery scam pattern");
-  }
-
-  if (text.includes("upi") || text.includes("send money")) {
-    score += 30;
-    reasons.push("💸 Money request detected");
-  }
+  if (hasLink) score += 40, reasons.push("🔗 Contains suspicious link");
+  if (text.includes("bank")) score += 25, reasons.push("🏦 Mentions bank");
+  if (text.includes("click here")) score += 25, reasons.push("⚠️ Click bait");
+  if (text.includes("urgent")) score += 20, reasons.push("⏳ Urgency");
+  if (text.includes("blocked")) score += 20, reasons.push("🚫 Threat");
+  if (text.includes("lottery") || text.includes("won"))
+    score += 30, reasons.push("🎁 Lottery scam");
+  if (text.includes("upi") || text.includes("send money"))
+    score += 30, reasons.push("💸 Money request");
 
   if (hasOTP) {
     if (hasLink) {
       score += 40;
-      reasons.push("🚨 OTP + link combo (high risk)");
+      reasons.push("🚨 OTP + link combo");
     } else {
       score += 10;
       reasons.push("🔐 Contains OTP");
@@ -61,13 +36,8 @@ function analyzeThreat(message: string) {
   let label = "✅ Safe";
   let color = "text-green-400";
 
-  if (score >= 70) {
-    label = "🚨 Scam";
-    color = "text-red-500";
-  } else if (score >= 40) {
-    label = "⚠️ Suspicious";
-    color = "text-yellow-400";
-  }
+  if (score >= 70) label = "🚨 Scam", (color = "text-red-500");
+  else if (score >= 40) label = "⚠️ Suspicious", (color = "text-yellow-400");
 
   return { label, color, score, reasons };
 }
@@ -76,131 +46,66 @@ export default function Home() {
   const [message, setMessage] = useState("");
   const [result, setResult] = useState<any>(null);
   const [loading, setLoading] = useState(false);
-  const [history, setHistory] = useState<any[]>([]);
-  const [copied, setCopied] = useState(false);
-
-  useEffect(() => {
-    if (message.length > 5) {
-      setResult(analyzeThreat(message));
-    } else {
-      setResult(null);
-    }
-  }, [message]);
 
   const handleCheck = () => {
     setLoading(true);
-
     setTimeout(() => {
-      const res = analyzeThreat(message);
-      setResult(res);
-
-      setHistory((prev) => [
-        { message, result: res },
-        ...prev.slice(0, 4),
-      ]);
-
+      setResult(analyzeThreat(message));
       setLoading(false);
-    }, 500);
-  };
-
-  const getBarColor = (score: number) => {
-    if (score >= 70) return "from-red-500 to-red-700";
-    if (score >= 40) return "from-yellow-400 to-orange-500";
-    return "from-green-400 to-green-600";
+    }, 400);
   };
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-black via-slate-900 to-black text-white px-4">
+    <main className="min-h-screen flex items-center justify-center bg-black text-white px-4">
 
       <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-white/10 backdrop-blur-xl border border-white/20 p-8 rounded-3xl w-full max-w-xl shadow-2xl"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="bg-white/10 p-8 rounded-3xl w-full max-w-xl"
       >
-        <h1 className="text-3xl font-bold text-center mb-6">
+        <h1 className="text-3xl text-center mb-6 font-bold">
           🚨 Scam Detector AI
         </h1>
 
         <textarea
-          rows={4}
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          placeholder="Paste suspicious message..."
-          className="w-full p-3 rounded-xl bg-black/40 border border-blue-400 outline-none"
+          className="w-full p-3 rounded bg-black/40 border"
+          placeholder="Paste message..."
         />
 
         <button
           onClick={handleCheck}
-          className="mt-4 w-full py-3 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600"
+          className="mt-4 w-full py-3 bg-blue-500 rounded"
         >
           {loading ? "Analyzing..." : "Analyze Message"}
         </button>
 
-        {/* RESULT */}
         {result && (
-          <div className="mt-6 p-5 rounded-xl bg-white/5">
+          <div className="mt-6 bg-white/5 p-4 rounded">
 
-            <p className={`text-2xl font-bold text-center ${result.color}`}>
+            <p className={`text-xl text-center ${result.color}`}>
               {result.label}
             </p>
-
-            <div className="w-full bg-gray-700 h-3 rounded-full mt-4 overflow-hidden">
-              <div
-                className={`h-3 bg-gradient-to-r ${getBarColor(result.score)}`}
-                style={{ width: `${result.score}%` }}
-              />
-            </div>
 
             <p className="text-center mt-2">
               Confidence: {result.score}%
             </p>
 
-            <div className="mt-4 text-sm text-gray-300">
-              {result.reasons.map((r: string, i: number) => (
-                <p key={i}>• {r}</p>
-              ))}
-            </div>
-
-            {/* COPY */}
+            {/* SAFE SHARE */}
             <button
               onClick={() => {
-                navigator.clipboard.writeText(message);
-                setCopied(true);
-                setTimeout(() => setCopied(false), 1500);
+                if (typeof window !== "undefined") {
+                  const text = "🚀 Check this: https://scam-shield-ai-rho.vercel.app";
+                  navigator.clipboard.writeText(text);
+                  alert("Copied!");
+                }
               }}
-              className="mt-4 px-3 py-1 bg-white/10 rounded-lg block mx-auto"
+              className="mt-4 w-full py-2 bg-purple-600 rounded"
             >
-              {copied ? "✅ Copied" : "📋 Copy"}
+              🚀 Share App
             </button>
 
-            {/* 🔥 SHARE BUTTON FIXED */}
-            <div className="mt-4">
-              <button
-                onClick={() => {
-                  const shareText = `🚨 Check this app 🔥 https://scam-shield-ai-rho.vercel.app`;
-                  navigator.clipboard.writeText(shareText);
-                  alert("Copied! Share now 🔥");
-                }}
-                className="w-full py-3 rounded-xl bg-gradient-to-r from-pink-500 to-purple-600"
-              >
-                🚀 Share App
-              </button>
-            </div>
-
-          </div>
-        )}
-
-        {/* HISTORY */}
-        {history.length > 0 && (
-          <div className="mt-6">
-            <p className="text-gray-400 text-sm mb-2">Recent Checks</p>
-
-            {history.map((item, i) => (
-              <div key={i} className="bg-white/5 p-2 rounded-lg mb-2">
-                <p className="truncate">{item.message}</p>
-                <p className="text-gray-400">{item.result.label}</p>
-              </div>
-            ))}
           </div>
         )}
 
