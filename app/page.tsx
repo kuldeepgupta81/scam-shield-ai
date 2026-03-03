@@ -2,7 +2,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 
-// 🔥 ADVANCED DETECTION ENGINE
 function analyzeThreat(message: string) {
   const text = message.toLowerCase();
 
@@ -101,7 +100,7 @@ export default function Home() {
       ]);
 
       setLoading(false);
-    }, 600);
+    }, 500);
   };
 
   const getBarColor = (score: number) => {
@@ -122,7 +121,6 @@ export default function Home() {
           🚨 Scam Detector AI
         </h1>
 
-        {/* INPUT */}
         <textarea
           rows={4}
           value={message}
@@ -131,7 +129,6 @@ export default function Home() {
           className="w-full p-3 rounded-xl bg-black/40 border border-blue-400 outline-none"
         />
 
-        {/* BUTTON */}
         <button
           onClick={handleCheck}
           className="mt-4 w-full py-3 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600"
@@ -139,7 +136,6 @@ export default function Home() {
           {loading ? "Analyzing..." : "Analyze Message"}
         </button>
 
-        {/* RESULT */}
         {result && (
           <div className="mt-6 p-5 rounded-xl bg-white/5">
 
@@ -147,7 +143,6 @@ export default function Home() {
               {result.label}
             </p>
 
-            {/* BAR */}
             <div className="w-full bg-gray-700 h-3 rounded-full mt-4 overflow-hidden">
               <div
                 className={`h-3 bg-gradient-to-r ${getBarColor(result.score)}`}
@@ -159,7 +154,6 @@ export default function Home() {
               Confidence: {result.score}%
             </p>
 
-            {/* REASONS */}
             <div className="mt-4 text-sm text-gray-300">
               {result.reasons.map((r: string, i: number) => (
                 <p key={i}>• {r}</p>
@@ -177,10 +171,27 @@ export default function Home() {
             >
               {copied ? "✅ Copied" : "📋 Copy"}
             </button>
+
+            {/* 🔥 SHARE BUTTON */}
+            <button
+              onClick={() => {
+                if (navigator.share) {
+                  navigator.share({
+                    text: "Check karo ye message scam hai ya safe 🔥",
+                    url: "https://scam-shield-ai-rho.vercel.app",
+                  });
+                } else {
+                  alert("Sharing not supported on this device");
+                }
+              }}
+              className="mt-3 w-full py-2 rounded-xl bg-white/10"
+            >
+              📤 Share App
+            </button>
+
           </div>
         )}
 
-        {/* HISTORY */}
         {history.length > 0 && (
           <div className="mt-6">
             <p className="text-gray-400 text-sm mb-2">Recent Checks</p>
