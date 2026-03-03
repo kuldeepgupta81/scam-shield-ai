@@ -173,20 +173,22 @@ export default function Home() {
               {copied ? "✅ Copied" : "📋 Copy"}
             </button>
 
+            {/* 🔥 SHARE BUTTON FIXED */}
+            <div className="mt-4">
+              <button
+                onClick={() => {
+                  const shareText = `🚨 Check this app 🔥 https://scam-shield-ai-rho.vercel.app`;
+                  navigator.clipboard.writeText(shareText);
+                  alert("Copied! Share now 🔥");
+                }}
+                className="w-full py-3 rounded-xl bg-gradient-to-r from-pink-500 to-purple-600"
+              >
+                🚀 Share App
+              </button>
+            </div>
+
           </div>
         )}
-
-        {/* 🔥 ALWAYS SHARE BUTTON */}
-        <button
-          onClick={() => {
-            const shareText = `🚨 Check this app 🔥 https://scam-shield-ai-rho.vercel.app`;
-            navigator.clipboard.writeText(shareText);
-            alert("Copied! Share now 🔥");
-          }}
-          className="mt-4 w-full py-3 rounded-xl bg-gradient-to-r from-pink-500 to-purple-600"
-        >
-          🚀 Share App
-        </button>
 
         {/* HISTORY */}
         {history.length > 0 && (
