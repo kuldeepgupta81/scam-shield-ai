@@ -54,14 +54,39 @@ function analyzeThreat(message: string) {
 export default function Home() {
   const [message, setMessage] = useState("");
   const [result, setResult] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+  const [history, setHistory] = useState<any[]>([]);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    if (message.length > 3) {
+    if (message.length > 5) {
       setResult(analyzeThreat(message));
     } else {
       setResult(null);
     }
   }, [message]);
+
+  const handleCheck = () => {
+    setLoading(true);
+
+    setTimeout(() => {
+      const res = analyzeThreat(message);
+      setResult(res);
+
+      setHistory((prev) => [
+        { message, result: res },
+        ...prev.slice(0, 4),
+      ]);
+
+      setLoading(false);
+    }, 400);
+  };
+
+  const getBarColor = (score: number) => {
+    if (score >= 70) return "from-red-500 to-red-700";
+    if (score >= 40) return "from-yellow-400 to-orange-500";
+    return "from-green-400 to-green-600";
+  };
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-black via-slate-900 to-black text-white px-4">
@@ -84,9 +109,10 @@ export default function Home() {
         />
 
         <button
+          onClick={handleCheck}
           className="mt-4 w-full py-3 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600"
         >
-          Analyze Message
+          {loading ? "Analyzing..." : "Analyze Message"}
         </button>
 
         {result && (
@@ -98,7 +124,7 @@ export default function Home() {
 
             <div className="w-full bg-gray-700 h-3 rounded-full mt-4 overflow-hidden">
               <div
-                className="h-3 bg-gradient-to-r from-purple-500 to-pink-500"
+                className={`h-3 bg-gradient-to-r ${getBarColor(result.score)}`}
                 style={{ width: `${result.score}%` }}
               />
             </div>
@@ -129,12 +155,12 @@ Check here 👉 https://scam-shield-ai-rho.vercel.app`;
                   "_blank"
                 );
               }}
-              className="mt-4 w-full py-3 bg-gradient-to-r from-pink-500 to-purple-600 rounded-xl"
+              className="mt-4 w-full py-3 rounded-xl bg-gradient-to-r from-pink-500 to-purple-600"
             >
               🚀 Share on WhatsApp
             </button>
 
-            {/* 📋 COPY RESULT */}
+            {/* 📋 COPY RESULT (NO POPUP NOW) */}
             <button
               onClick={() => {
                 const text = `🚨 Scam Detector Result:
@@ -146,11 +172,12 @@ Result: ${result.label}
 Check here 👉 https://scam-shield-ai-rho.vercel.app`;
 
                 navigator.clipboard.writeText(text);
-                alert("Copied! Share anywhere 🔥");
+                setCopied(true);
+                setTimeout(() => setCopied(false), 2000);
               }}
               className="mt-2 w-full py-2 bg-gray-700 rounded"
             >
-              📋 Copy Result
+              {copied ? "✅ Copied!" : "📋 Copy Result"}
             </button>
 
             {/* 🔥 VIRAL TEXT */}
@@ -158,6 +185,19 @@ Check here 👉 https://scam-shield-ai-rho.vercel.app`;
               🔥 {Math.floor(Math.random() * 50000 + 10000)} users checked scams today
             </p>
 
+          </div>
+        )}
+
+        {history.length > 0 && (
+          <div className="mt-6">
+            <p className="text-gray-400 text-sm mb-2">Recent Checks</p>
+
+            {history.map((item, i) => (
+              <div key={i} className="bg-white/5 p-2 rounded-lg mb-2">
+                <p className="truncate">{item.message}</p>
+                <p className="text-gray-400">{item.result.label}</p>
+              </div>
+            ))}
           </div>
         )}
 
