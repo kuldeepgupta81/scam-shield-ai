@@ -1,8 +1,6 @@
 "use client";
 import { useState } from "react";
-import { motion } from "framer-motion";
 
-/* 🔥 MAIN DETECTION FUNCTION */
 function analyzeThreat(message: string) {
   const text = message.toLowerCase();
 
@@ -64,11 +62,7 @@ export default function Home() {
   return (
     <main className="min-h-screen flex items-center justify-center bg-black text-white px-4">
 
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="bg-white/10 p-8 rounded-3xl w-full max-w-xl"
-      >
+      <div className="bg-white/10 p-8 rounded-3xl w-full max-w-xl">
         <h1 className="text-3xl text-center mb-6 font-bold">
           🚨 Scam Detector AI
         </h1>
@@ -104,7 +98,7 @@ export default function Home() {
               ))}
             </div>
 
-            {/* 🔥 WHATSAPP SHARE */}
+            {/* ✅ ONLY WHATSAPP SHARE (NO COPY CODE) */}
             <button
               onClick={() => {
                 const text = `🚨 Scam Detector Result:
@@ -125,7 +119,6 @@ Check here 👉 https://scam-shield-ai-rho.vercel.app`;
               🚀 Share on WhatsApp
             </button>
 
-            {/* 🔥 VIRAL TEXT */}
             <p className="text-center text-sm mt-3 text-gray-400">
               🔥 10,000+ users checked scams today
             </p>
@@ -133,7 +126,7 @@ Check here 👉 https://scam-shield-ai-rho.vercel.app`;
           </div>
         )}
 
-      </motion.div>
+      </div>
     </main>
   );
 }
