@@ -1,17 +1,29 @@
 import { NextResponse } from "next/server";
 
-export async function POST(req) {
+export async function POST(req: Request) {
   try {
-    const { message } = await req.json();
+    const body = await req.json();
+    const message: string = body.message;
 
     if (!message) {
-      return NextResponse.json({ result: "No message provided" });
+      return NextResponse.json({
+        result: "⚠️ No message provided",
+        confidence: 0,
+      });
     }
 
-    // Simple AI logic (for now)
-    const scamKeywords = ["otp", "win", "lottery", "prize", "urgent", "click", "bank"];
+    const scamKeywords = [
+      "otp",
+      "urgent",
+      "bank",
+      "lottery",
+      "prize",
+      "click",
+      "link",
+      "win",
+    ];
 
-    const isScam = scamKeywords.some(word =>
+    const isScam = scamKeywords.some((word) =>
       message.toLowerCase().includes(word)
     );
 
@@ -21,14 +33,14 @@ export async function POST(req) {
 
     return NextResponse.json({
       result,
-      confidence: Math.floor(Math.random() * 10) + 90
+      confidence: Math.floor(Math.random() * 10) + 90,
     });
+  } catch (error) {
+    console.error("API ERROR:", error);
 
-  } catch (err) {
-    console.error(err);
     return NextResponse.json({
-      result: "Server Error",
-      confidence: 0
+      result: "❌ Server Error",
+      confidence: 0,
     });
   }
 }

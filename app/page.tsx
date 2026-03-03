@@ -18,7 +18,7 @@ export default function Home() {
 
       const data: { result?: string; confidence?: number } = await res.json();
 
-      // ✅ MAIN FIX
+      // ✅ MAIN FIX (Error handling)
       if (!data.result) {
         setResult("⚠️ Unable to analyze");
         setConfidence("");
@@ -37,6 +37,7 @@ export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-black text-white p-4">
       <div className="bg-gray-900 p-6 rounded-2xl w-full max-w-md text-center shadow-lg">
+        
         <h1 className="text-2xl font-bold mb-4">🚨 Scam Detector AI</h1>
 
         <textarea
