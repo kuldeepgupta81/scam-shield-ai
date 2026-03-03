@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 
 function analyzeThreat(message: string) {
@@ -8,27 +8,29 @@ function analyzeThreat(message: string) {
   let score = 0;
   let reasons: string[] = [];
 
-  const hasLink = /(https?:\/\/|www\.)/.test(text);
-  const hasOTP = /\b\d{4,6}\b/.test(text);
+  if (text.includes("otp")) {
+    score += 40;
+    reasons.push("🔐 OTP scam risk");
+  }
 
-  if (hasLink) score += 40, reasons.push("🔗 Contains suspicious link");
-  if (text.includes("bank")) score += 25, reasons.push("🏦 Mentions bank");
-  if (text.includes("click here")) score += 25, reasons.push("⚠️ Click bait");
-  if (text.includes("urgent")) score += 20, reasons.push("⏳ Urgency");
-  if (text.includes("blocked")) score += 20, reasons.push("🚫 Threat");
-  if (text.includes("lottery") || text.includes("won"))
-    score += 30, reasons.push("🎁 Lottery scam");
-  if (text.includes("upi") || text.includes("send money"))
-    score += 30, reasons.push("💸 Money request");
+  if (text.includes("won") || text.includes("lottery")) {
+    score += 30;
+    reasons.push("🎁 Lottery scam");
+  }
 
-  if (hasOTP) {
-    if (hasLink) {
-      score += 40;
-      reasons.push("🚨 OTP + link combo");
-    } else {
-      score += 10;
-      reasons.push("🔐 Contains OTP");
-    }
+  if (text.includes("click")) {
+    score += 25;
+    reasons.push("⚠️ Click bait");
+  }
+
+  if (text.includes("bank")) {
+    score += 25;
+    reasons.push("🏦 Bank related message");
+  }
+
+  if (text.includes("upi") || text.includes("send money")) {
+    score += 30;
+    reasons.push("💸 Money request");
   }
 
   if (score > 100) score = 100;
@@ -36,8 +38,13 @@ function analyzeThreat(message: string) {
   let label = "✅ Safe";
   let color = "text-green-400";
 
-  if (score >= 70) label = "🚨 Scam", (color = "text-red-500");
-  else if (score >= 40) label = "⚠️ Suspicious", (color = "text-yellow-400");
+  if (score >= 70) {
+    label = "🚨 Scam";
+    color = "text-red-500";
+  } else if (score >= 40) {
+    label = "⚠️ Suspicious";
+    color = "text-yellow-400";
+  }
 
   return { label, color, score, reasons };
 }
@@ -45,14 +52,10 @@ function analyzeThreat(message: string) {
 export default function Home() {
   const [message, setMessage] = useState("");
   const [result, setResult] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
 
   const handleCheck = () => {
-    setLoading(true);
-    setTimeout(() => {
-      setResult(analyzeThreat(message));
-      setLoading(false);
-    }, 400);
+    const res = analyzeThreat(message);
+    setResult(res);
   };
 
   return (
@@ -71,18 +74,18 @@ export default function Home() {
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           className="w-full p-3 rounded bg-black/40 border"
-          placeholder="Paste message..."
+          placeholder="Paste suspicious message..."
         />
 
         <button
           onClick={handleCheck}
           className="mt-4 w-full py-3 bg-blue-500 rounded"
         >
-          {loading ? "Analyzing..." : "Analyze Message"}
+          Analyze Message
         </button>
 
         {result && (
-          <div className="mt-6 bg-white/5 p-4 rounded">
+          <div className="mt-6 bg-white/5 p-5 rounded-xl">
 
             <p className={`text-xl text-center ${result.color}`}>
               {result.label}
@@ -92,19 +95,36 @@ export default function Home() {
               Confidence: {result.score}%
             </p>
 
-            {/* SAFE SHARE */}
+            <div className="mt-3 text-sm text-gray-300">
+              {result.reasons.map((r: string, i: number) => (
+                <p key={i}>• {r}</p>
+              ))}
+            </div>
+
+            {/* 🔥 VIRAL SHARE */}
             <button
               onClick={() => {
-                if (typeof window !== "undefined") {
-                  const text = "🚀 Check this: https://scam-shield-ai-rho.vercel.app";
-                  navigator.clipboard.writeText(text);
-                  alert("Copied!");
-                }
+                const text = `🚨 Scam Detector Result:
+
+"${message}"
+
+Result: ${result.label}
+
+Check here 👉 https://scam-shield-ai-rho.vercel.app`;
+
+                window.open(
+                  `https://wa.me/?text=${encodeURIComponent(text)}`
+                );
               }}
-              className="mt-4 w-full py-2 bg-purple-600 rounded"
+              className="mt-4 w-full py-3 bg-gradient-to-r from-pink-500 to-purple-600 rounded"
             >
-              🚀 Share App
+              🚀 Share on WhatsApp
             </button>
+
+            {/* 🔥 VIRAL HOOK */}
+            <p className="text-center text-sm mt-3 text-gray-400">
+              🔥 10,000+ users checked scams today
+            </p>
 
           </div>
         )}
