@@ -101,7 +101,7 @@ export default function Home() {
               ))}
             </div>
 
-            {/* 🔥 VIRAL SHARE */}
+            {/* 🔥 WHATSAPP SHARE FINAL */}
             <button
               onClick={() => {
                 const text = `🚨 Scam Detector Result:
@@ -113,7 +113,8 @@ Result: ${result.label}
 Check here 👉 https://scam-shield-ai-rho.vercel.app`;
 
                 window.open(
-                  `https://wa.me/?text=${encodeURIComponent(text)}`
+                  `https://wa.me/?text=${encodeURIComponent(text)}`,
+                  "_blank"
                 );
               }}
               className="mt-4 w-full py-3 bg-gradient-to-r from-pink-500 to-purple-600 rounded"
