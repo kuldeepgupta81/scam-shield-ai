@@ -1,58 +1,58 @@
 "use client";
 import { useState } from "react";
 
-function analyzeThreat(message: string) {
-  const text = message.toLowerCase();
-
-  let score = 0;
-  let reasons: string[] = [];
-
-  const hasOTP = /\b\d{4,6}\b/.test(text);
-
-  if (text.includes("otp") || hasOTP) {
-    score += 50;
-    reasons.push("🔐 OTP related message");
-  }
-
-  if (text.includes("won") || text.includes("lottery")) {
-    score += 30;
-    reasons.push("🎁 Lottery scam");
-  }
-
-  if (text.includes("click")) {
-    score += 25;
-    reasons.push("⚠️ Click bait");
-  }
-
-  if (text.includes("bank")) {
-    score += 25;
-    reasons.push("🏦 Bank related message");
-  }
-
-  if (text.includes("upi") || text.includes("send money")) {
-    score += 30;
-    reasons.push("💸 Money request");
-  }
-
-  if (score > 100) score = 100;
-
-  let label = "✅ Safe";
-  let color = "text-green-400";
-
-  if (score >= 70) {
-    label = "🚨 Scam";
-    color = "text-red-500";
-  } else if (score >= 40) {
-    label = "⚠️ Suspicious";
-    color = "text-yellow-400";
-  }
-
-  return { label, color, score, reasons };
-}
-
 export default function Home() {
   const [message, setMessage] = useState("");
   const [result, setResult] = useState<any>(null);
+
+  function analyzeThreat(message: string) {
+    const text = message.toLowerCase();
+
+    let score = 0;
+    let reasons: string[] = [];
+
+    const hasOTP = /\b\d{4,6}\b/.test(text);
+
+    if (text.includes("otp") || hasOTP) {
+      score += 50;
+      reasons.push("🔐 OTP related message");
+    }
+
+    if (text.includes("won") || text.includes("lottery")) {
+      score += 30;
+      reasons.push("🎁 Lottery scam");
+    }
+
+    if (text.includes("click")) {
+      score += 25;
+      reasons.push("⚠️ Click bait");
+    }
+
+    if (text.includes("bank")) {
+      score += 25;
+      reasons.push("🏦 Bank related message");
+    }
+
+    if (text.includes("upi") || text.includes("send money")) {
+      score += 30;
+      reasons.push("💸 Money request");
+    }
+
+    if (score > 100) score = 100;
+
+    let label = "✅ Safe";
+    let color = "text-green-400";
+
+    if (score >= 70) {
+      label = "🚨 Scam";
+      color = "text-red-500";
+    } else if (score >= 40) {
+      label = "⚠️ Suspicious";
+      color = "text-yellow-400";
+    }
+
+    return { label, color, score, reasons };
+  }
 
   const handleCheck = () => {
     const res = analyzeThreat(message);
@@ -61,7 +61,6 @@ export default function Home() {
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-black text-white px-4">
-
       <div className="bg-white/10 p-8 rounded-3xl w-full max-w-xl">
         <h1 className="text-3xl text-center mb-6 font-bold">
           🚨 Scam Detector AI
@@ -83,7 +82,6 @@ export default function Home() {
 
         {result && (
           <div className="mt-6 bg-white/5 p-5 rounded-xl">
-
             <p className={`text-xl text-center ${result.color}`}>
               {result.label}
             </p>
@@ -98,7 +96,7 @@ export default function Home() {
               ))}
             </div>
 
-            {/* ✅ ONLY WHATSAPP SHARE (NO COPY CODE) */}
+            {/* ✅ ONLY WHATSAPP SHARE */}
             <button
               onClick={() => {
                 const text = `🚨 Scam Detector Result:
@@ -122,10 +120,8 @@ Check here 👉 https://scam-shield-ai-rho.vercel.app`;
             <p className="text-center text-sm mt-3 text-gray-400">
               🔥 10,000+ users checked scams today
             </p>
-
           </div>
         )}
-
       </div>
     </main>
   );
