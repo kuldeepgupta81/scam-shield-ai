@@ -172,21 +172,31 @@ export default function Home() {
               {copied ? "✅ Copied" : "📋 Copy"}
             </button>
 
-            {/* 🔥 SHARE BUTTON */}
+            {/* 🔥 SHARE RESULT (PRO) */}
             <button
               onClick={() => {
+                const shareText = `🚨 Scam Detector AI Result:
+"${message}"
+
+Result: ${result.label}
+Confidence: ${result.score}%
+
+Check here 👉 https://scam-shield-ai-rho.vercel.app`;
+
                 if (navigator.share) {
                   navigator.share({
-                    text: "Check karo ye message scam hai ya safe 🔥",
+                    title: "Scam Detector AI 🚨",
+                    text: shareText,
                     url: "https://scam-shield-ai-rho.vercel.app",
                   });
                 } else {
-                  alert("Sharing not supported on this device");
+                  navigator.clipboard.writeText(shareText);
+                  alert("Copied! Share anywhere 🔥");
                 }
               }}
-              className="mt-3 w-full py-2 rounded-xl bg-white/10"
+              className="mt-3 w-full py-2 rounded-xl bg-gradient-to-r from-pink-500 to-purple-600"
             >
-              📤 Share App
+              🚀 Share Result
             </button>
 
           </div>
