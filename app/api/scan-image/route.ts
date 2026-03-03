@@ -9,26 +9,43 @@ export async function POST(req: Request) {
       return NextResponse.json({ result: "No file uploaded" });
     }
 
-    // convert image to base64
     const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-    const base64 = buffer.toString("base64");
+    const base64 = Buffer.from(bytes).toString("base64");
 
-    // ⚠️ Yaha abhi simple logic (fake AI)
-    // baad me real AI connect karenge
+    const res = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        messages: [
+          {
+            role: "user",
+            content: [
+              {
+                type: "text",
+                text: "Analyze this image and tell if it's a scam, suspicious or safe.",
+              },
+              {
+                type: "image_url",
+                image_url: {
+                  url: `data:image/png;base64,${base64}`,
+                },
+              },
+            ],
+          },
+        ],
+      }),
+    });
 
-    let result = "✅ Safe";
-
-    if (base64.includes("otp") || base64.includes("bank")) {
-      result = "⚠️ Suspicious";
-    }
+    const data = await res.json();
 
     return NextResponse.json({
-      result,
+      result: data.choices?.[0]?.message?.content || "Error",
     });
   } catch (err) {
-    return NextResponse.json({
-      result: "Error scanning image",
-    });
+    return NextResponse.json({ result: "Image scan failed" });
   }
 }

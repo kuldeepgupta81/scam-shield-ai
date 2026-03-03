@@ -16,7 +16,7 @@ export async function POST(req: Request) {
           {
             role: "system",
             content:
-              "You are a scam detection AI. Reply only: Safe, Suspicious, or Scam with short reason.",
+              "You are a scam detection AI. Analyze message and reply only: Safe / Suspicious / Scam",
           },
           {
             role: "user",

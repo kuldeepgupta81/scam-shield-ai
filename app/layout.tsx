@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
-import "./globals.css";
+import Script from "next/script";
 
 export const metadata: Metadata = {
-  title: "Scam Shield AI",
-  description: "AI-powered scam detection app",
+  title: "Scam Detector AI - Check Messages Instantly",
+  description:
+    "Detect scam, OTP fraud, phishing messages instantly using AI. Free scam checker tool.",
 };
 
 export default function RootLayout({
@@ -13,8 +14,24 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="antialiased bg-black text-white">
+      <body>
+
         {children}
+
+        {/* 🔥 Google Analytics */}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXX"
+          strategy="afterInteractive"
+        />
+        <Script id="ga" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-XXXXXXX');
+          `}
+        </Script>
+
       </body>
     </html>
   );
