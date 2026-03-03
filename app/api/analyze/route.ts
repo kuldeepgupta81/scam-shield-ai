@@ -1,74 +1,45 @@
-import OpenAI from "openai";
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
   try {
     const { message } = await req.json();
 
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        {
-          role: "system",
-          content: `
-You are an advanced scam detection AI.
+    const text = message.toLowerCase();
 
-Classify the message strictly as:
-SCAM or SAFE
+    let score = 0;
+    let reasons: string[] = [];
 
-Rules:
-- Lottery / prize / winning money = SCAM
-- Urgent links or click now = SCAM
-- Asking OTP / bank details = SCAM
-
-IMPORTANT:
-Respond ONLY in valid JSON format. No extra text.
-
-Example:
-{
-  "status": "SCAM",
-  "reason": "Lottery scam message",
-  "confidence": "90%"
-}
-`,
-        },
-        {
-          role: "user",
-          content: message,
-        },
-      ],
-    });
-
-    const text = response.choices[0]?.message?.content || "";
-
-    let result;
-
-    // ✅ SAFE PARSE (NO CRASH)
-    try {
-      result = JSON.parse(text);
-    } catch (err) {
-      console.log("Parse failed:", text);
-
-      // fallback detection
-      result = {
-        status: text.toLowerCase().includes("scam") ? "SCAM" : "SAFE",
-        reason: "Fallback detection (AI format issue)",
-        confidence: "70%",
-      };
+    if (text.includes("won")) {
+      score += 30;
+      reasons.push("Lottery scam");
     }
 
-    return Response.json(result);
+    if (text.includes("click")) {
+      score += 25;
+      reasons.push("Click bait");
+    }
+
+    if (text.includes("otp")) {
+      score += 40;
+      reasons.push("OTP scam");
+    }
+
+    let label = "Safe";
+
+    if (score >= 60) label = "Scam";
+    else if (score >= 30) label = "Suspicious";
+
+    return NextResponse.json({
+      label,
+      confidence: score,
+      reasons,
+    });
 
   } catch (error) {
-    console.log("API ERROR:", error);
-
-    return Response.json({
-      status: "ERROR",
-      reason: "Server failed",
-      confidence: "0%",
+    return NextResponse.json({
+      label: "Error",
+      confidence: 0,
+      reasons: ["Server error"],
     });
   }
 }
