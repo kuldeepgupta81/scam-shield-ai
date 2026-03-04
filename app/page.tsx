@@ -10,7 +10,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  // 🔎 AI MESSAGE ANALYSIS
+  // 🔎 MESSAGE ANALYSIS
   const analyzeText = async () => {
 
     if (!message) return;
@@ -140,15 +140,6 @@ Check 👉 https://scam-shield-ai-rho.vercel.app`;
           onChange={(e) => setMessage(e.target.value)}
           placeholder="Paste suspicious message..."
           className="w-full p-3 rounded bg-black text-white"
-        />
-
-        {/* PHONE NUMBER CHECK */}
-
-        <input
-          type="text"
-          placeholder="Or paste phone number to check scam..."
-          className="w-full p-2 mt-2 rounded bg-black text-white"
-          onChange={(e) => setMessage(e.target.value)}
         />
 
         {/* ANALYZE BUTTON */}
