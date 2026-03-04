@@ -10,69 +10,37 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  // 🔎 TEXT ANALYSIS
-  const analyzeText = () => {
+  // 🔎 AI MESSAGE ANALYSIS
+  const analyzeText = async () => {
 
-    let score = 0;
-    let reasons: string[] = [];
+    if (!message) return;
 
-    const text = message.toLowerCase();
+    setLoading(true);
 
-    // OTP
-    if (text.includes("otp")) {
-      score += 20;
-      reasons.push("🔐 Contains OTP code");
+    try {
+
+      const res = await fetch("/api/analyze", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ message }),
+      });
+
+      const data = await res.json();
+
+      setResult({
+        label: data.result,
+        score: data.confidence,
+        reasons: data.reasons,
+        explanation: "AI analyzed message patterns and scam indicators.",
+      });
+
+    } catch (err) {
+      console.error(err);
     }
 
-    // Numbers
-    if (/\d{4,6}/.test(text)) {
-      score += 10;
-    }
-
-    // Bank
-    if (text.includes("bank") || text.includes("account")) {
-      score += 10;
-      reasons.push("🏦 Banking related message");
-    }
-
-    // Suspicious link
-    if (text.includes("http") || text.includes("link")) {
-      score += 40;
-      reasons.push("🔗 Suspicious link detected");
-    }
-
-    // Lottery
-    if (text.includes("win") || text.includes("lottery")) {
-      score += 50;
-      reasons.push("🎁 Lottery scam pattern");
-    }
-
-    // Urgent
-    if (text.includes("urgent")) {
-      score += 20;
-      reasons.push("⚡ Urgent request detected");
-    }
-
-    let label = "✅ Safe";
-    let explanation = "This message appears safe.";
-
-    if (score >= 60) {
-      label = "🚨 Scam Detected";
-      explanation =
-        "High scam probability. Do not click links or share personal info.";
-    } 
-    else if (score >= 30) {
-      label = "⚠️ Suspicious";
-      explanation =
-        "Some suspicious indicators detected. Verify the sender.";
-    }
-
-    setResult({
-      label,
-      score,
-      reasons,
-      explanation,
-    });
+    setLoading(false);
   };
 
   // 📷 IMAGE SCAN
@@ -100,7 +68,7 @@ export default function Home() {
         label: data.result,
         score: data.confidence,
         reasons: data.reasons,
-        explanation: "Image text analyzed using AI detection",
+        explanation: "Image text analyzed using AI detection.",
       });
 
       setLoading(false);
@@ -145,9 +113,9 @@ Check 👉 https://scam-shield-ai-rho.vercel.app`;
   };
 
   const riskColor =
-    result?.score >= 60
+    result?.score >= 70
       ? "bg-red-500"
-      : result?.score >= 30
+      : result?.score >= 40
       ? "bg-yellow-500"
       : "bg-green-500";
 
@@ -165,7 +133,7 @@ Check 👉 https://scam-shield-ai-rho.vercel.app`;
           ⭐ Trusted by 50,000+ users worldwide
         </p>
 
-        {/* TEXT INPUT */}
+        {/* MESSAGE INPUT */}
 
         <textarea
           value={message}
@@ -174,16 +142,25 @@ Check 👉 https://scam-shield-ai-rho.vercel.app`;
           className="w-full p-3 rounded bg-black text-white"
         />
 
-        {/* ANALYZE */}
+        {/* PHONE NUMBER CHECK */}
+
+        <input
+          type="text"
+          placeholder="Or paste phone number to check scam..."
+          className="w-full p-2 mt-2 rounded bg-black text-white"
+          onChange={(e) => setMessage(e.target.value)}
+        />
+
+        {/* ANALYZE BUTTON */}
 
         <button
           onClick={analyzeText}
           className="w-full mt-3 py-2 rounded bg-gradient-to-r from-blue-500 to-purple-500"
         >
-          Analyze Message
+          {loading ? "Analyzing..." : "Analyze Message"}
         </button>
 
-        {/* FILE */}
+        {/* FILE INPUT */}
 
         <input
           type="file"
@@ -271,11 +248,11 @@ Check 👉 https://scam-shield-ai-rho.vercel.app`;
             </p>
 
           </div>
+
         )}
 
       </div>
 
     </main>
-
   );
 }
