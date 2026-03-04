@@ -3,56 +3,68 @@
 import { useState } from "react";
 
 export default function Home() {
+
   const [message, setMessage] = useState("");
   const [result, setResult] = useState<any>(null);
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  // 🔥 MESSAGE ANALYSIS
+  // 🔎 TEXT ANALYSIS
   const analyzeText = () => {
+
     let score = 0;
     let reasons: string[] = [];
 
     const text = message.toLowerCase();
 
-    if (text.includes("otp") || /\d{4,6}/.test(text)) {
-      score += 40;
-      reasons.push("🔐 Message contains OTP or verification code");
-    }
-
-    if (text.includes("bank") || text.includes("account")) {
-      score += 25;
-      reasons.push("🏦 Mentions bank or financial account");
-    }
-
-    if (text.includes("win") || text.includes("lottery")) {
-      score += 30;
-      reasons.push("🎁 Lottery or prize scam pattern");
-    }
-
-    if (text.includes("click") || text.includes("link")) {
+    // OTP
+    if (text.includes("otp")) {
       score += 20;
-      reasons.push("🔗 Suspicious link request");
+      reasons.push("🔐 Contains OTP code");
     }
 
+    // Numbers
+    if (/\d{4,6}/.test(text)) {
+      score += 10;
+    }
+
+    // Bank
+    if (text.includes("bank") || text.includes("account")) {
+      score += 10;
+      reasons.push("🏦 Banking related message");
+    }
+
+    // Suspicious link
+    if (text.includes("http") || text.includes("link")) {
+      score += 40;
+      reasons.push("🔗 Suspicious link detected");
+    }
+
+    // Lottery
+    if (text.includes("win") || text.includes("lottery")) {
+      score += 50;
+      reasons.push("🎁 Lottery scam pattern");
+    }
+
+    // Urgent
     if (text.includes("urgent")) {
-      score += 15;
-      reasons.push("⚡ Creates urgency (common scam trick)");
+      score += 20;
+      reasons.push("⚡ Urgent request detected");
     }
 
     let label = "✅ Safe";
-    let explanation =
-      "This message does not match common scam patterns.";
+    let explanation = "This message appears safe.";
 
-    if (score >= 70) {
+    if (score >= 60) {
       label = "🚨 Scam Detected";
       explanation =
-        "This message strongly matches common scam patterns. Do not share personal information.";
-    } else if (score >= 40) {
+        "High scam probability. Do not click links or share personal info.";
+    } 
+    else if (score >= 30) {
       label = "⚠️ Suspicious";
       explanation =
-        "This message contains some suspicious indicators. Be careful before taking action.";
+        "Some suspicious indicators detected. Verify the sender.";
     }
 
     setResult({
@@ -63,8 +75,9 @@ export default function Home() {
     });
   };
 
-  // 🔥 IMAGE SCAN
+  // 📷 IMAGE SCAN
   const handleImageScan = async () => {
+
     if (!file) return;
 
     setLoading(true);
@@ -72,14 +85,13 @@ export default function Home() {
     const reader = new FileReader();
 
     reader.onloadend = async () => {
-      const base64 = reader.result;
 
       const res = await fetch("/api/scan-image", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ image: base64 }),
+        body: JSON.stringify({ image: reader.result }),
       });
 
       const data = await res.json();
@@ -88,7 +100,7 @@ export default function Home() {
         label: data.result,
         score: data.confidence,
         reasons: data.reasons,
-        explanation: "Image text analyzed using AI detection.",
+        explanation: "Image text analyzed using AI detection",
       });
 
       setLoading(false);
@@ -97,9 +109,10 @@ export default function Home() {
     reader.readAsDataURL(file);
   };
 
-  // 🔥 COPY RESULT
+  // 📋 COPY RESULT
   const copyResult = () => {
-    const text = `🚨 Scam Detector Result:
+
+    const text = `🚨 Scam Detector Result
 
 "${message}"
 
@@ -108,13 +121,16 @@ Result: ${result?.label}
 Check 👉 https://scam-shield-ai-rho.vercel.app`;
 
     navigator.clipboard.writeText(text);
+
     setCopied(true);
+
     setTimeout(() => setCopied(false), 2000);
   };
 
-  // 🔥 WHATSAPP SHARE
+  // 📲 WHATSAPP SHARE
   const shareWhatsApp = () => {
-    const text = `🚨 Scam Detector Result:
+
+    const text = `🚨 Scam Detector Result
 
 "${message}"
 
@@ -129,14 +145,16 @@ Check 👉 https://scam-shield-ai-rho.vercel.app`;
   };
 
   const riskColor =
-    result?.score >= 70
+    result?.score >= 60
       ? "bg-red-500"
-      : result?.score >= 40
+      : result?.score >= 30
       ? "bg-yellow-500"
       : "bg-green-500";
 
   return (
+
     <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-900 to-indigo-900 text-white p-4">
+
       <div className="bg-white/10 backdrop-blur-lg p-6 rounded-2xl w-full max-w-md shadow-lg">
 
         <h1 className="text-xl font-bold text-center mb-2">
@@ -148,6 +166,7 @@ Check 👉 https://scam-shield-ai-rho.vercel.app`;
         </p>
 
         {/* TEXT INPUT */}
+
         <textarea
           value={message}
           onChange={(e) => setMessage(e.target.value)}
@@ -156,6 +175,7 @@ Check 👉 https://scam-shield-ai-rho.vercel.app`;
         />
 
         {/* ANALYZE */}
+
         <button
           onClick={analyzeText}
           className="w-full mt-3 py-2 rounded bg-gradient-to-r from-blue-500 to-purple-500"
@@ -163,14 +183,16 @@ Check 👉 https://scam-shield-ai-rho.vercel.app`;
           Analyze Message
         </button>
 
-        {/* FILE INPUT */}
+        {/* FILE */}
+
         <input
           type="file"
           onChange={(e) => setFile(e.target.files?.[0] || null)}
           className="mt-3"
         />
 
-        {/* SCAN IMAGE */}
+        {/* IMAGE SCAN */}
+
         <button
           onClick={handleImageScan}
           className="w-full mt-2 py-2 rounded bg-gradient-to-r from-purple-500 to-pink-500"
@@ -179,15 +201,17 @@ Check 👉 https://scam-shield-ai-rho.vercel.app`;
         </button>
 
         {/* RESULT */}
+
         {result && (
+
           <div className="mt-4 p-4 bg-white/10 rounded">
 
-            {/* RESULT BADGE */}
             <h2 className="text-xl font-bold text-center">
               {result.label}
             </h2>
 
             {/* RISK BAR */}
+
             <div className="w-full bg-gray-700 h-3 rounded mt-3">
               <div
                 className={`${riskColor} h-3 rounded`}
@@ -200,11 +224,13 @@ Check 👉 https://scam-shield-ai-rho.vercel.app`;
             </p>
 
             {/* EXPLANATION */}
+
             <p className="text-sm mt-3 text-gray-200 text-center">
               {result.explanation}
             </p>
 
             {/* REASONS */}
+
             <ul className="text-sm mt-2">
               {result.reasons?.map((r: string, i: number) => (
                 <li key={i}>• {r}</li>
@@ -212,6 +238,7 @@ Check 👉 https://scam-shield-ai-rho.vercel.app`;
             </ul>
 
             {/* SHARE */}
+
             <button
               onClick={shareWhatsApp}
               className="w-full mt-3 py-2 bg-pink-500 rounded"
@@ -220,6 +247,7 @@ Check 👉 https://scam-shield-ai-rho.vercel.app`;
             </button>
 
             {/* COPY */}
+
             <button
               onClick={copyResult}
               className="w-full mt-2 py-2 bg-gray-700 rounded"
@@ -228,6 +256,7 @@ Check 👉 https://scam-shield-ai-rho.vercel.app`;
             </button>
 
             {/* PREMIUM */}
+
             <button
               onClick={() => alert("💰 Payment coming soon")}
               className="w-full mt-2 py-2 bg-green-600 rounded"
@@ -236,13 +265,17 @@ Check 👉 https://scam-shield-ai-rho.vercel.app`;
             </button>
 
             {/* VIRAL COUNTER */}
+
             <p className="text-center text-sm mt-3 text-gray-300">
               🔥 {Math.floor(Math.random() * 50000 + 10000)} users checked scams today
             </p>
 
           </div>
         )}
+
       </div>
+
     </main>
+
   );
 }
