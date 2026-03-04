@@ -13,10 +13,16 @@ export async function POST(req: Request) {
     reasons.push("OTP verification message detected");
   }
 
-  // Phone numbers
-  if (/\+?\d{10,}/.test(text)) {
-    score += 20;
-    reasons.push("Phone number detected in message");
+  // Bank related
+  if (text.includes("bank") || text.includes("account")) {
+    score += 30;
+    reasons.push("Bank account related message");
+  }
+
+  // Urgent pressure
+  if (text.includes("urgent") || text.includes("immediately")) {
+    score += 30;
+    reasons.push("Urgent action requested");
   }
 
   // Links
@@ -25,32 +31,32 @@ export async function POST(req: Request) {
     reasons.push("Suspicious link detected");
   }
 
-  // Phishing domains
+  // Phishing short links
   if (
     text.includes("bit.ly") ||
     text.includes("tinyurl") ||
     text.includes("verify-account")
   ) {
-    score += 40;
-    reasons.push("Shortened phishing link detected");
+    score += 50;
+    reasons.push("Phishing link detected");
   }
 
   // Lottery scam
   if (text.includes("lottery") || text.includes("win money")) {
-    score += 50;
+    score += 60;
     reasons.push("Lottery scam pattern");
   }
 
-  // Urgency
-  if (text.includes("urgent")) {
+  // Phone numbers
+  if (/\+?\d{10,}/.test(text)) {
     score += 20;
-    reasons.push("Urgent action requested");
+    reasons.push("Phone number detected");
   }
 
   let result = "✅ Safe";
 
   if (score >= 70) result = "🚨 Scam";
-  else if (score >= 40) result = "⚠️ Suspicious";
+  else if (score >= 30) result = "⚠️ Suspicious";
 
   return Response.json({
     result,
