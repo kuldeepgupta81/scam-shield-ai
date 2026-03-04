@@ -1,5 +1,4 @@
 export async function POST(req: Request) {
-
   const { message } = await req.json();
 
   const text = message.toLowerCase();
@@ -7,7 +6,7 @@ export async function POST(req: Request) {
   let score = 0;
   let reasons: string[] = [];
 
-  // OTP detection
+  // OTP
   if (text.includes("otp")) {
     score += 20;
     reasons.push("OTP verification detected");
@@ -23,7 +22,7 @@ export async function POST(req: Request) {
     reasons.push("Bank verification message");
   }
 
-  // Urgency pressure
+  // Urgency
   if (
     text.includes("urgent") ||
     text.includes("immediately") ||
@@ -33,7 +32,7 @@ export async function POST(req: Request) {
     reasons.push("Urgent pressure tactic");
   }
 
-  // Lottery / prize scams
+  // Lottery scam
   if (
     text.includes("lottery") ||
     text.includes("won") ||
@@ -44,7 +43,7 @@ export async function POST(req: Request) {
     reasons.push("Lottery / prize scam pattern");
   }
 
-  // Phishing URLs
+  // Links
   if (
     text.includes("http") ||
     text.includes("www") ||
@@ -55,7 +54,7 @@ export async function POST(req: Request) {
     reasons.push("Suspicious link detected");
   }
 
-  // Short links (phishing)
+  // Short phishing links
   if (
     text.includes("bit.ly") ||
     text.includes("tinyurl") ||
@@ -65,17 +64,17 @@ export async function POST(req: Request) {
     reasons.push("Shortened phishing link");
   }
 
-  // WhatsApp scam pattern
+  // WhatsApp scam
   if (
-    text.includes("whatsapp") ||
-    text.includes("send this to") ||
-    text.includes("forward this message")
+    text.includes("forward this message") ||
+    text.includes("share with") ||
+    text.includes("whatsapp")
   ) {
     score += 25;
     reasons.push("WhatsApp viral scam pattern");
   }
 
-  // Fake support impersonation
+  // Fake support
   if (
     text.includes("customer care") ||
     text.includes("support team") ||
@@ -85,7 +84,7 @@ export async function POST(req: Request) {
     reasons.push("Fake support impersonation");
   }
 
-  // Cap score
+  // Score limit
   score = Math.min(score, 100);
 
   let result = "✅ Safe";
