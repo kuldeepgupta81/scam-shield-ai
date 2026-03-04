@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Tesseract from "tesseract.js";
 
 export default function Home() {
 
@@ -10,7 +11,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  // 🔎 MESSAGE ANALYSIS
+  // 🔎 TEXT MESSAGE ANALYSIS
   const analyzeText = async () => {
 
     if (!message) return;
@@ -31,7 +32,7 @@ export default function Home() {
 
       setResult({
         label: data.result,
-        score: data.confidence,
+        score: Math.min(data.confidence, 100),
         reasons: data.reasons,
         explanation: "AI analyzed message patterns and scam indicators.",
       });
@@ -43,38 +44,51 @@ export default function Home() {
     setLoading(false);
   };
 
-  // 📷 IMAGE SCAN
+  // 📷 SCREENSHOT SCANNER (OCR)
   const handleImageScan = async () => {
 
     if (!file) return;
 
     setLoading(true);
 
-    const reader = new FileReader();
+    try {
 
-    reader.onloadend = async () => {
+      // OCR text extraction
+      const scan = await Tesseract.recognize(
+        file,
+        "eng"
+      );
 
-      const res = await fetch("/api/scan-image", {
+      const extractedText = scan.data.text;
+
+      // Send OCR text to scam AI
+      const res = await fetch("/api/analyze", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "application/json"
         },
-        body: JSON.stringify({ image: reader.result }),
+        body: JSON.stringify({
+          message: extractedText
+        })
       });
 
       const data = await res.json();
 
       setResult({
         label: data.result,
-        score: data.confidence,
+        score: Math.min(data.confidence, 100),
         reasons: data.reasons,
-        explanation: "Image text analyzed using AI detection.",
+        explanation: "Screenshot scanned and analyzed using AI.",
       });
 
-      setLoading(false);
-    };
+      // auto fill message box with OCR text
+      setMessage(extractedText);
 
-    reader.readAsDataURL(file);
+    } catch (err) {
+      console.error(err);
+    }
+
+    setLoading(false);
   };
 
   // 📋 COPY RESULT
@@ -151,21 +165,28 @@ Check 👉 https://scam-shield-ai-rho.vercel.app`;
           {loading ? "Analyzing..." : "Analyze Message"}
         </button>
 
+        {/* SCANNER LABEL */}
+
+        <p className="text-sm text-gray-300 mt-4 text-center">
+          📷 Scan Screenshot (WhatsApp / Email / SMS)
+        </p>
+
         {/* FILE INPUT */}
 
         <input
           type="file"
+          accept="image/*"
           onChange={(e) => setFile(e.target.files?.[0] || null)}
-          className="mt-3"
+          className="mt-2"
         />
 
-        {/* IMAGE SCAN */}
+        {/* SCAN BUTTON */}
 
         <button
           onClick={handleImageScan}
           className="w-full mt-2 py-2 rounded bg-gradient-to-r from-purple-500 to-pink-500"
         >
-          {loading ? "Scanning..." : "Scan Image"}
+          {loading ? "Scanning Screenshot..." : "Scan Screenshot"}
         </button>
 
         {/* RESULT */}
@@ -183,7 +204,7 @@ Check 👉 https://scam-shield-ai-rho.vercel.app`;
             <div className="w-full bg-gray-700 h-3 rounded mt-3">
               <div
                 className={`${riskColor} h-3 rounded`}
-                style={{ width: `${result.score}%` }}
+                style={{ width: `${Math.min(result.score,100)}%` }}
               />
             </div>
 
