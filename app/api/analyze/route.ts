@@ -7,6 +7,37 @@ export async function POST(req: Request) {
   let score = 0;
   let reasons: string[] = [];
 
+  // 🔴 Known scam numbers database
+  const scamNumbers = [
+    "9876543210",
+    "9123456789",
+    "7400123456",
+    "8001234567",
+    "9999999999"
+  ];
+
+  // 📞 Detect phone number
+  const foundNumber = text.match(/\+?\d{10,}/);
+
+  if (foundNumber) {
+
+    const number = foundNumber[0].replace(/\D/g, "");
+
+    const last10 = number.slice(-10);
+
+    if (scamNumbers.includes(last10)) {
+
+      score += 90;
+      reasons.push("🚨 Reported scam phone number");
+
+    } else {
+
+      score += 20;
+      reasons.push("Phone number detected");
+
+    }
+  }
+
   // OTP
   if (text.includes("otp")) {
     score += 20;
@@ -47,12 +78,6 @@ export async function POST(req: Request) {
     reasons.push("Lottery scam pattern");
   }
 
-  // Phone numbers
-  if (/\+?\d{10,}/.test(text)) {
-    score += 20;
-    reasons.push("Phone number detected");
-  }
-
   let result = "✅ Safe";
 
   if (score >= 70) result = "🚨 Scam";
@@ -63,4 +88,5 @@ export async function POST(req: Request) {
     confidence: score,
     reasons,
   });
+
 }
