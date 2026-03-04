@@ -10,44 +10,82 @@ export async function POST(req: Request) {
   // OTP detection
   if (text.includes("otp")) {
     score += 20;
-    reasons.push("OTP verification message detected");
+    reasons.push("OTP verification detected");
   }
 
-  // Bank related
-  if (text.includes("bank") || text.includes("account")) {
+  // Bank phishing
+  if (
+    text.includes("bank") ||
+    text.includes("account") ||
+    text.includes("verify account")
+  ) {
     score += 30;
-    reasons.push("Bank account related message");
+    reasons.push("Bank verification message");
   }
 
-  // Urgent pressure
-  if (text.includes("urgent") || text.includes("immediately")) {
-    score += 30;
-    reasons.push("Urgent action requested");
+  // Urgency pressure
+  if (
+    text.includes("urgent") ||
+    text.includes("immediately") ||
+    text.includes("act now")
+  ) {
+    score += 25;
+    reasons.push("Urgent pressure tactic");
   }
 
-  // Links
-  if (text.includes("http") || text.includes("www")) {
+  // Lottery / prize scams
+  if (
+    text.includes("lottery") ||
+    text.includes("won") ||
+    text.includes("prize") ||
+    text.includes("reward")
+  ) {
     score += 40;
+    reasons.push("Lottery / prize scam pattern");
+  }
+
+  // Phishing URLs
+  if (
+    text.includes("http") ||
+    text.includes("www") ||
+    text.includes(".xyz") ||
+    text.includes(".top")
+  ) {
+    score += 30;
     reasons.push("Suspicious link detected");
   }
 
-  // Phishing short links
+  // Short links (phishing)
   if (
     text.includes("bit.ly") ||
     text.includes("tinyurl") ||
-    text.includes("verify-account")
+    text.includes("t.co")
   ) {
-    score += 50;
-    reasons.push("Phishing link detected");
+    score += 40;
+    reasons.push("Shortened phishing link");
   }
 
-  // Lottery scam
-  if (text.includes("lottery") || text.includes("win")) {
-    score += 60;
-    reasons.push("Lottery scam pattern");
+  // WhatsApp scam pattern
+  if (
+    text.includes("whatsapp") ||
+    text.includes("send this to") ||
+    text.includes("forward this message")
+  ) {
+    score += 25;
+    reasons.push("WhatsApp viral scam pattern");
   }
 
-  // 🔧 FIX: score max 100
+  // Fake support impersonation
+  if (
+    text.includes("customer care") ||
+    text.includes("support team") ||
+    text.includes("helpline")
+  ) {
+    score += 25;
+    reasons.push("Fake support impersonation");
+  }
+
+  // Cap score
   score = Math.min(score, 100);
 
   let result = "✅ Safe";
@@ -60,5 +98,4 @@ export async function POST(req: Request) {
     confidence: score,
     reasons,
   });
-
 }
