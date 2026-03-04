@@ -9,7 +9,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  // 🔥 MESSAGE ANALYSIS (LOCAL FREE)
+  // 🔥 MESSAGE ANALYSIS
   const analyzeText = () => {
     let score = 0;
     let reasons: string[] = [];
@@ -17,33 +17,53 @@ export default function Home() {
     const text = message.toLowerCase();
 
     if (text.includes("otp") || /\d{4,6}/.test(text)) {
-      score += 50;
-      reasons.push("🔐 OTP related message");
+      score += 40;
+      reasons.push("🔐 Message contains OTP or verification code");
     }
 
-    if (text.includes("bank")) {
-      score += 30;
-      reasons.push("🏦 Bank related");
+    if (text.includes("bank") || text.includes("account")) {
+      score += 25;
+      reasons.push("🏦 Mentions bank or financial account");
     }
 
     if (text.includes("win") || text.includes("lottery")) {
       score += 30;
-      reasons.push("🎁 Lottery scam");
+      reasons.push("🎁 Lottery or prize scam pattern");
+    }
+
+    if (text.includes("click") || text.includes("link")) {
+      score += 20;
+      reasons.push("🔗 Suspicious link request");
+    }
+
+    if (text.includes("urgent")) {
+      score += 15;
+      reasons.push("⚡ Creates urgency (common scam trick)");
     }
 
     let label = "✅ Safe";
+    let explanation =
+      "This message does not match common scam patterns.";
 
-    if (score >= 70) label = "🚨 Scam";
-    else if (score >= 40) label = "⚠️ Suspicious";
+    if (score >= 70) {
+      label = "🚨 Scam Detected";
+      explanation =
+        "This message strongly matches common scam patterns. Do not share personal information.";
+    } else if (score >= 40) {
+      label = "⚠️ Suspicious";
+      explanation =
+        "This message contains some suspicious indicators. Be careful before taking action.";
+    }
 
     setResult({
       label,
       score,
       reasons,
+      explanation,
     });
   };
 
-  // 🔥 IMAGE SCAN (FIXED)
+  // 🔥 IMAGE SCAN
   const handleImageScan = async () => {
     if (!file) return;
 
@@ -68,6 +88,7 @@ export default function Home() {
         label: data.result,
         score: data.confidence,
         reasons: data.reasons,
+        explanation: "Image text analyzed using AI detection.",
       });
 
       setLoading(false);
@@ -76,7 +97,7 @@ export default function Home() {
     reader.readAsDataURL(file);
   };
 
-  // 🔥 COPY RESULT (NO POPUP)
+  // 🔥 COPY RESULT
   const copyResult = () => {
     const text = `🚨 Scam Detector Result:
 
@@ -106,6 +127,13 @@ Check 👉 https://scam-shield-ai-rho.vercel.app`;
       "_blank"
     );
   };
+
+  const riskColor =
+    result?.score >= 70
+      ? "bg-red-500"
+      : result?.score >= 40
+      ? "bg-yellow-500"
+      : "bg-green-500";
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-900 to-indigo-900 text-white p-4">
@@ -154,14 +182,29 @@ Check 👉 https://scam-shield-ai-rho.vercel.app`;
         {result && (
           <div className="mt-4 p-4 bg-white/10 rounded">
 
-            <h2 className="text-lg font-semibold text-center">
+            {/* RESULT BADGE */}
+            <h2 className="text-xl font-bold text-center">
               {result.label}
             </h2>
 
-            <p className="text-center text-sm">
-              Confidence: {result.score}%
+            {/* RISK BAR */}
+            <div className="w-full bg-gray-700 h-3 rounded mt-3">
+              <div
+                className={`${riskColor} h-3 rounded`}
+                style={{ width: `${result.score}%` }}
+              />
+            </div>
+
+            <p className="text-center text-sm mt-1">
+              Risk Score: {result.score}%
             </p>
 
+            {/* EXPLANATION */}
+            <p className="text-sm mt-3 text-gray-200 text-center">
+              {result.explanation}
+            </p>
+
+            {/* REASONS */}
             <ul className="text-sm mt-2">
               {result.reasons?.map((r: string, i: number) => (
                 <li key={i}>• {r}</li>
