@@ -7,7 +7,7 @@ export async function POST(req: Request) {
   let score = 0;
   let reasons: string[] = [];
 
-  // NLP style token detection
+  // NLP token detection
   const tokens = text.split(/\s+/);
 
   const suspiciousWords = [
@@ -30,6 +30,18 @@ export async function POST(req: Request) {
     }
   });
 
+  // OTP keyword
+  if (text.includes("otp")) {
+    score += 25;
+    reasons.push("OTP related message detected");
+  }
+
+  // OTP number pattern
+  if (/\d{4,6}/.test(text)) {
+    score += 20;
+    reasons.push("Verification code detected");
+  }
+
   // Bank impersonation
   if (
     text.includes("bank") &&
@@ -39,7 +51,7 @@ export async function POST(req: Request) {
     reasons.push("Possible bank impersonation");
   }
 
-  // Urgent pressure tactic
+  // Urgent pressure
   if (
     text.includes("urgent") ||
     text.includes("act now") ||
@@ -49,25 +61,34 @@ export async function POST(req: Request) {
     reasons.push("Urgent pressure tactic detected");
   }
 
-  // Phishing links
+  // Suspicious links
   if (
     text.includes("http") ||
     text.includes("www") ||
-    text.includes(".xyz") ||
-    text.includes(".top")
+    text.includes("link")
   ) {
-    score += 30;
-    reasons.push("Suspicious URL detected");
+    score += 25;
+    reasons.push("Suspicious link mention");
   }
 
-  // Short links
+  // Short phishing links
   if (
     text.includes("bit.ly") ||
     text.includes("tinyurl") ||
     text.includes("t.co")
   ) {
     score += 40;
-    reasons.push("Shortened phishing link");
+    reasons.push("Shortened phishing link detected");
+  }
+
+  // Fake domains
+  if (
+    text.includes(".xyz") ||
+    text.includes(".top") ||
+    text.includes(".click")
+  ) {
+    score += 30;
+    reasons.push("Suspicious domain detected");
   }
 
   // Lottery scams
@@ -82,7 +103,7 @@ export async function POST(req: Request) {
     reasons.push("Lottery / prize scam pattern");
   }
 
-  // WhatsApp chain scams
+  // WhatsApp chain scam
   if (
     text.includes("forward this") ||
     text.includes("share with") ||
@@ -102,17 +123,17 @@ export async function POST(req: Request) {
     reasons.push("Fake support impersonation");
   }
 
-  // OTP request scam
+  // OTP sharing request
   if (
     text.includes("share otp") ||
     text.includes("tell otp") ||
     text.includes("provide otp")
   ) {
     score += 50;
-    reasons.push("OTP sharing request");
+    reasons.push("OTP sharing request detected");
   }
 
-  // Cap score
+  // Limit score
   score = Math.min(score, 100);
 
   let result = "✅ Safe";
