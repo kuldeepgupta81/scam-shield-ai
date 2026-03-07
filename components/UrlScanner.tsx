@@ -2,51 +2,61 @@
 
 import { useState } from "react"
 
-export default function UrlScanner() {
+export default function UrlScanner(){
 
-  const [url, setUrl] = useState("")
-  const [result, setResult] = useState("")
+const [url,setUrl]=useState("")
+const [result,setResult]=useState("")
 
-  const scan = () => {
+function scan(){
 
-    if (url.includes("bit.ly") || url.includes("free")) {
+let risk=0
 
-      setResult("⚠️ Possible Phishing Link")
+if(url.includes("bit.ly") || url.includes("tinyurl")){
+risk=70
+}
 
-    } else {
+if(url.includes("http")){
+risk+=20
+}
 
-      setResult("✅ Safe URL")
+if(risk>50){
+setResult("🚨 High Risk Phishing URL")
+}else{
+setResult("✅ Safe URL")
+}
 
-    }
+}
 
-  }
+return(
 
-  return (
+<div className="mt-6">
 
-    <div>
+<h2 className="text-lg mb-3">🔗 URL Scam Scanner</h2>
 
-      <h2 className="mb-4">
-        🔗 URL Scam Scanner
-      </h2>
+<input
+value={url}
+onChange={(e)=>setUrl(e.target.value)}
+placeholder="Paste suspicious URL..."
+className="w-full p-3 bg-black border border-gray-700 rounded mb-3"
+/>
 
-      <input
-        className="w-full bg-black border border-slate-800 rounded-lg p-3 mb-4"
-        placeholder="Paste suspicious link..."
-        onChange={(e) => setUrl(e.target.value)}
-      />
+<button
+onClick={scan}
+className="px-6 py-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded"
+>
 
-      <button
-        onClick={scan}
-        className="px-6 py-3 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-lg"
-      >
-        Scan URL
-      </button>
+Scan URL
 
-      <p className="mt-4 text-gray-300">
-        {result}
-      </p>
+</button>
 
-    </div>
+{result && (
+<p className="mt-3 text-yellow-300">
+{result}
+</p>
+)}
 
-  )
+</div>
+
+)
+
 }
