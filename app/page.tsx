@@ -24,29 +24,62 @@ let explanation = "";
 
 const text = message.toLowerCase();
 
+/* OTP */
 if(text.includes("otp")){
 risk += 40;
 reasons.push("OTP request detected");
 }
 
-if(text.includes("verify")){
+/* Verification */
+if(text.includes("verify") || text.includes("verification")){
 risk += 25;
 reasons.push("Verification request detected");
 }
 
+/* Urgency */
 if(text.includes("urgent") || text.includes("immediately")){
 risk += 20;
 reasons.push("Urgent language used");
 }
 
+/* Suspicious link */
 if(text.includes("http") || text.includes("bit.ly")){
 risk += 30;
 reasons.push("Suspicious link detected");
 }
 
+/* Bank / payment */
 if(text.includes("bank") || text.includes("payment")){
 risk += 20;
 reasons.push("Financial request detected");
+}
+
+/* Lottery scam detection 1 */
+if (
+  text.includes("lottery") ||
+  text.includes("won") ||
+  text.includes("winner") ||
+  text.includes("prize")
+) {
+  risk += 40;
+  reasons.push("Lottery scam pattern detected");
+}
+
+/* Lottery scam detection 2 */
+if (
+  text.includes("lottery") ||
+  text.includes("won") ||
+  text.includes("winner") ||
+  text.includes("prize")
+) {
+  risk += 40;
+  reasons.push("Lottery scam pattern detected");
+}
+
+/* Fee / pay scam */
+if(text.includes("fee") || text.includes("pay")){
+risk += 25;
+reasons.push("Suspicious payment request");
 }
 
 let status = "Safe Message";
@@ -57,7 +90,7 @@ if(risk >= 70) status = "🚨 High Risk Scam";
 if(risk >= 40){
 
 explanation =
-"This message appears suspicious because it contains common scam indicators such as OTP requests, urgent language, links, or financial information requests. Legitimate companies usually do not ask for sensitive data via random messages.";
+"This message appears suspicious because it contains common scam indicators such as OTP requests, lottery claims, urgent language, links, or payment requests. Legitimate companies usually do not ask for sensitive data or fees via random messages.";
 
 }
 
