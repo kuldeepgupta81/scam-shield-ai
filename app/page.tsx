@@ -6,22 +6,27 @@ export default function Home() {
 
 const [message,setMessage]=useState("")
 const [result,setResult]=useState<any>(null)
+const [loading,setLoading]=useState(false)
 
 function analyze(){
 
 if(!message) return
+
+setLoading(true)
+
+setTimeout(()=>{
 
 let risk=20
 let reasons=[]
 
 if(message.toLowerCase().includes("otp")){
 risk+=30
-reasons.push("OTP related content")
+reasons.push("OTP related content detected")
 }
 
 if(message.toLowerCase().includes("verify")){
 risk+=20
-reasons.push("Verification request")
+reasons.push("Verification request detected")
 }
 
 if(message.toLowerCase().includes("urgent")){
@@ -29,19 +34,28 @@ risk+=20
 reasons.push("Urgency pattern detected")
 }
 
+let status="Safe Message"
+
 if(risk>60){
-setResult({
-status:"Suspicious Message",
-risk:risk,
-reasons
-})
-}else{
-setResult({
-status:"Safe Message",
-risk:risk,
-reasons
-})
+status="Suspicious Message"
 }
+
+setResult({
+status,
+risk,
+reasons
+})
+
+setLoading(false)
+
+},1200)
+
+}
+
+function reset(){
+
+setResult(null)
+setMessage("")
 
 }
 
@@ -51,7 +65,7 @@ return(
 
 <div className="w-[500px] bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl p-8 shadow-2xl">
 
-<h1 className="text-3xl font-bold text-center mb-2">
+<h1 className="text-3xl font-bold text-center mb-1">
 🚨 Scam Detector AI
 </h1>
 
@@ -70,21 +84,21 @@ onChange={(e)=>setMessage(e.target.value)}
 onClick={analyze}
 className="w-full py-3 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 hover:scale-105 transition mb-6"
 >
-Analyze Message
+{loading ? "🔍 Analyzing..." : "Analyze Message"}
 </button>
 
 {result && (
 
 <div className="bg-white/10 border border-white/20 rounded-xl p-6">
 
-<h2 className="text-xl font-semibold mb-2">
+<h2 className="text-xl font-semibold mb-3">
 ⚠ {result.status}
 </h2>
 
 <div className="w-full bg-gray-700 rounded-full h-3 mb-3">
 
 <div
-className="bg-yellow-400 h-3 rounded-full"
+className="bg-yellow-400 h-3 rounded-full transition-all"
 style={{width:`${result.risk}%`}}
 />
 
@@ -94,8 +108,8 @@ style={{width:`${result.risk}%`}}
 Risk Score: {result.risk}%
 </p>
 
-<p className="text-gray-300 text-sm mb-3">
-AI analyzed message patterns:
+<p className="text-gray-300 text-sm mb-2">
+AI detected message indicators:
 </p>
 
 <ul className="text-sm text-yellow-300 list-disc ml-5">
@@ -106,7 +120,10 @@ AI analyzed message patterns:
 
 </ul>
 
-<button className="w-full mt-5 py-3 rounded-lg bg-gradient-to-r from-indigo-500 to-pink-500">
+<button
+onClick={reset}
+className="w-full mt-5 py-3 rounded-lg bg-gradient-to-r from-indigo-500 to-pink-500 hover:scale-105 transition"
+>
 Scan Another Message
 </button>
 
