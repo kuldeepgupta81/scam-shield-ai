@@ -1,249 +1,123 @@
-"use client";
+"use client"
 
-import { useState } from "react";
+import { useState } from "react"
 
 export default function Home() {
 
-  const [message, setMessage] = useState("");
-  const [result, setResult] = useState<any>(null);
-  const [file, setFile] = useState<File | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [copied, setCopied] = useState(false);
+const [message,setMessage]=useState("")
+const [result,setResult]=useState<any>(null)
 
-  // 🔎 MESSAGE ANALYSIS
-  const analyzeText = async () => {
+function analyze(){
 
-    if (!message) return;
+if(!message) return
 
-    setLoading(true);
+let risk=20
+let reasons=[]
 
-    try {
+if(message.toLowerCase().includes("otp")){
+risk+=30
+reasons.push("OTP related content")
+}
 
-      const res = await fetch("/api/analyze", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ message }),
-      });
+if(message.toLowerCase().includes("verify")){
+risk+=20
+reasons.push("Verification request")
+}
 
-      const data = await res.json();
+if(message.toLowerCase().includes("urgent")){
+risk+=20
+reasons.push("Urgency pattern detected")
+}
 
-      setResult({
-        label: data.result,
-        score: data.confidence,
-        reasons: data.reasons,
-        explanation: "AI analyzed message patterns and scam indicators.",
-      });
+if(risk>60){
+setResult({
+status:"Suspicious Message",
+risk:risk,
+reasons
+})
+}else{
+setResult({
+status:"Safe Message",
+risk:risk,
+reasons
+})
+}
 
-    } catch (err) {
-      console.error(err);
-    }
+}
 
-    setLoading(false);
-  };
+return(
 
-  // 📷 IMAGE SCAN
-  const handleImageScan = async () => {
+<div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#1e1b4b] via-[#312e81] to-[#0f172a] text-white">
 
-    if (!file) return;
+<div className="w-[500px] bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl p-8 shadow-2xl">
 
-    setLoading(true);
+<h1 className="text-3xl font-bold text-center mb-2">
+🚨 Scam Detector AI
+</h1>
 
-    const reader = new FileReader();
+<p className="text-center text-gray-300 mb-6">
+AI-powered scam detection tool
+</p>
 
-    reader.onloadend = async () => {
+<textarea
+placeholder="Paste suspicious message..."
+className="w-full p-4 rounded-lg bg-black text-white border border-gray-700 mb-4"
+value={message}
+onChange={(e)=>setMessage(e.target.value)}
+/>
 
-      const res = await fetch("/api/scan-image", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ image: reader.result }),
-      });
+<button
+onClick={analyze}
+className="w-full py-3 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 hover:scale-105 transition mb-6"
+>
+Analyze Message
+</button>
 
-      const data = await res.json();
+{result && (
 
-      setResult({
-        label: data.result,
-        score: data.confidence,
-        reasons: data.reasons,
-        explanation: "Image text analyzed using AI detection.",
-      });
+<div className="bg-white/10 border border-white/20 rounded-xl p-6">
 
-      setLoading(false);
-    };
+<h2 className="text-xl font-semibold mb-2">
+⚠ {result.status}
+</h2>
 
-    reader.readAsDataURL(file);
-  };
+<div className="w-full bg-gray-700 rounded-full h-3 mb-3">
 
-  // 📋 COPY RESULT
-  const copyResult = () => {
+<div
+className="bg-yellow-400 h-3 rounded-full"
+style={{width:`${result.risk}%`}}
+/>
 
-    const text = `🚨 Scam Detector Result
+</div>
 
-"${message}"
+<p className="text-sm mb-3">
+Risk Score: {result.risk}%
+</p>
 
-Result: ${result?.label}
+<p className="text-gray-300 text-sm mb-3">
+AI analyzed message patterns:
+</p>
 
-Check 👉 https://scam-shield-ai-rho.vercel.app`;
+<ul className="text-sm text-yellow-300 list-disc ml-5">
 
-    navigator.clipboard.writeText(text);
+{result.reasons.map((r:any,i:number)=>(
+<li key={i}>{r}</li>
+))}
 
-    setCopied(true);
+</ul>
 
-    setTimeout(() => setCopied(false), 2000);
-  };
+<button className="w-full mt-5 py-3 rounded-lg bg-gradient-to-r from-indigo-500 to-pink-500">
+Scan Another Message
+</button>
 
-  // 📲 WHATSAPP SHARE
-  const shareWhatsApp = () => {
+</div>
 
-    const text = `🚨 Scam Detector Result
+)}
 
-"${message}"
+</div>
 
-Result: ${result?.label}
+</div>
 
-Check 👉 https://scam-shield-ai-rho.vercel.app`;
+)
 
-    window.open(
-      `https://wa.me/?text=${encodeURIComponent(text)}`,
-      "_blank"
-    );
-  };
-
-  const riskColor =
-    result?.score >= 70
-      ? "bg-red-500"
-      : result?.score >= 40
-      ? "bg-yellow-500"
-      : "bg-green-500";
-
-  return (
-
-    <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-900 to-indigo-900 text-white p-4">
-
-      <div className="bg-white/10 backdrop-blur-lg p-6 rounded-2xl w-full max-w-md shadow-lg">
-
-        <h1 className="text-xl font-bold text-center mb-2">
-          🚨 Scam Detector AI
-        </h1>
-
-        <p className="text-center text-sm mb-4 text-yellow-300">
-          ⭐ Trusted by 50,000+ users worldwide
-        </p>
-
-        {/* MESSAGE INPUT */}
-
-        <textarea
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          placeholder="Paste suspicious message..."
-          className="w-full p-3 rounded bg-black text-white"
-        />
-
-        {/* ANALYZE BUTTON */}
-
-        <button
-          onClick={analyzeText}
-          className="w-full mt-3 py-2 rounded bg-gradient-to-r from-blue-500 to-purple-500"
-        >
-          {loading ? "Analyzing..." : "Analyze Message"}
-        </button>
-
-        {/* FILE INPUT */}
-
-        <input
-          type="file"
-          onChange={(e) => setFile(e.target.files?.[0] || null)}
-          className="mt-3"
-        />
-
-        {/* IMAGE SCAN */}
-
-        <button
-          onClick={handleImageScan}
-          className="w-full mt-2 py-2 rounded bg-gradient-to-r from-purple-500 to-pink-500"
-        >
-          {loading ? "Scanning..." : "Scan Image"}
-        </button>
-
-        {/* RESULT */}
-
-        {result && (
-
-          <div className="mt-4 p-4 bg-white/10 rounded">
-
-            <h2 className="text-xl font-bold text-center">
-              {result.label}
-            </h2>
-
-            {/* RISK BAR */}
-
-            <div className="w-full bg-gray-700 h-3 rounded mt-3">
-              <div
-                className={`${riskColor} h-3 rounded`}
-                style={{ width: `${result.score}%` }}
-              />
-            </div>
-
-            <p className="text-center text-sm mt-1">
-              Risk Score: {result.score}%
-            </p>
-
-            {/* EXPLANATION */}
-
-            <p className="text-sm mt-3 text-gray-200 text-center">
-              {result.explanation}
-            </p>
-
-            {/* REASONS */}
-
-            <ul className="text-sm mt-2">
-              {result.reasons?.map((r: string, i: number) => (
-                <li key={i}>• {r}</li>
-              ))}
-            </ul>
-
-            {/* SHARE */}
-
-            <button
-              onClick={shareWhatsApp}
-              className="w-full mt-3 py-2 bg-pink-500 rounded"
-            >
-              🚀 Share on WhatsApp
-            </button>
-
-            {/* COPY */}
-
-            <button
-              onClick={copyResult}
-              className="w-full mt-2 py-2 bg-gray-700 rounded"
-            >
-              {copied ? "✅ Copied!" : "📋 Copy Result"}
-            </button>
-
-            {/* PREMIUM */}
-
-            <button
-              onClick={() => alert("💰 Payment coming soon")}
-              className="w-full mt-2 py-2 bg-green-600 rounded"
-            >
-              🔓 Unlock Unlimited (₹49)
-            </button>
-
-            {/* VIRAL COUNTER */}
-
-            <p className="text-center text-sm mt-3 text-gray-300">
-              🔥 {Math.floor(Math.random() * 50000 + 10000)} users checked scams today
-            </p>
-
-          </div>
-
-        )}
-
-      </div>
-
-    </main>
-  );
 }
