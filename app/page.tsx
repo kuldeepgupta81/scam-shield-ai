@@ -65,17 +65,6 @@ if (
   reasons.push("Lottery scam pattern detected");
 }
 
-/* Lottery scam detection 2 */
-if (
-  text.includes("lottery") ||
-  text.includes("won") ||
-  text.includes("winner") ||
-  text.includes("prize")
-) {
-  risk += 40;
-  reasons.push("Lottery scam pattern detected");
-}
-
 /* Fee / pay scam */
 if(text.includes("fee") || text.includes("pay")){
 risk += 25;
@@ -92,6 +81,10 @@ if(risk >= 40){
 explanation =
 "This message appears suspicious because it contains common scam indicators such as OTP requests, lottery claims, urgent language, links, or payment requests. Legitimate companies usually do not ask for sensitive data or fees via random messages.";
 
+}
+
+if (risk > 100) {
+risk = 100;
 }
 
 setResult({
